@@ -1,0 +1,130 @@
+{
+  "schema_version": "0.2",
+  "case_id": "hf_whosouravsharma_paper_qa_lora_hash_mismatch_20261029",
+  "input": {
+    "model_id": "whosouravsharma/paper-qa-lora",
+    "model_url": "https://huggingface.co/whosouravsharma/paper-qa-lora",
+    "revision": null,
+    "checked_at": "2026-10-29",
+    "artifact_file_name": "adapter_model.safetensors",
+    "artifact_sha256": "4ef4de62188b4b3718258d63a1a6d9ad90416aa2c578abd67fabe69a7111a352",
+    "artifact_size_bytes": 8746152,
+    "tampered_artifact_sha256": "b1522f09eaf32b94e8263ed3b56d65d210a4eeeb550774554138c85ab9b8151a",
+    "artifact_hash_evidence": {
+      "evidence_quote": "lfs.oid = 4ef4de62188b4b3718258d63a1a6d9ad90416aa2c578abd67fabe69a7111a352",
+      "evidence_location": "Hugging Face API file tree, adapter_model.safetensors entry (lfs.oid, size 8746152)",
+      "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora/tree/main"
+    }
+  },
+  "components": [
+    {
+      "role": "base_model",
+      "name": "Qwen/Qwen2.5-1.5B-Instruct",
+      "relationship": "base_for",
+      "publisher": "Qwen",
+      "publisher_confidence": "high",
+      "rights_holder": null,
+      "rights_holder_status": "not_verified",
+      "license_id": "apache-2.0",
+      "license_name": "Apache License 2.0",
+      "evidence": [
+        {
+          "evidence_quote": "A QLoRA adapter for `Qwen/Qwen2.5-1.5B-Instruct`.",
+          "evidence_location": "Model card introduction",
+          "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora"
+        },
+        {
+          "evidence_quote": "License: apache-2.0",
+          "evidence_location": "Original model card header",
+          "source_url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct"
+        }
+      ]
+    },
+    {
+      "role": "dataset",
+      "name": "whosouravsharma/paper-qa-qasper-sft",
+      "relationship": "trained_on",
+      "publisher": "whosouravsharma",
+      "publisher_confidence": "high",
+      "rights_holder": null,
+      "rights_holder_status": "not_verified",
+      "license_id": "cc-by-4.0",
+      "license_name": "Creative Commons Attribution 4.0",
+      "evidence": [
+        {
+          "evidence_quote": "Training data is QASPER (CC BY 4.0)",
+          "evidence_location": "Model card summary table",
+          "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora"
+        }
+      ]
+    },
+    {
+      "role": "adapter",
+      "name": "whosouravsharma/paper-qa-lora",
+      "relationship": "adapter_of",
+      "publisher": "whosouravsharma",
+      "publisher_confidence": "high",
+      "rights_holder": null,
+      "rights_holder_status": "not_verified",
+      "license_id": "apache-2.0",
+      "license_name": "Apache License 2.0",
+      "evidence": [
+        {
+          "evidence_quote": "Developed by | whosouravsharma",
+          "evidence_location": "Model details table",
+          "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora"
+        },
+        {
+          "evidence_quote": "Model type | LoRA adapter (QLoRA, 4-bit NF4) for a 1.5B-parameter decoder-only chat model",
+          "evidence_location": "Model details table",
+          "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora"
+        }
+      ]
+    }
+  ],
+  "license_analysis": {
+    "declared_license": {
+      "value": "apache-2.0",
+      "evidence_quote": "License | Apache 2.0, the same as the base model. Training data is QASPER (CC BY 4.0)",
+      "evidence_location": "Model card summary table",
+      "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora"
+    },
+    "upstream_license": {
+      "value": "apache-2.0",
+      "evidence_quote": "License: apache-2.0",
+      "evidence_location": "Original model card header",
+      "source_url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct"
+    },
+    "license_metadata_mismatch": false,
+    "commercial_use_assessment": "allowed",
+    "findings": [
+      "어댑터와 베이스 모델의 라이선스 표기가 모두 Apache-2.0임",
+      "학습 데이터는 카드에 CC BY 4.0으로 표기됨",
+      "원본 해시는 HF API의 lfs.oid와 직접 계산한 SHA-256이 일치함",
+      "변조본은 원본 파일 끝에 1바이트(x)를 추가해 만든 복사본이며 해시가 달라짐"
+    ]
+  },
+  "policy": {
+    "automated_status": null,
+    "reasons": []
+  },
+  "review": {
+    "reviewer_decision": null,
+    "reviewer_wallet": null,
+    "approved_at": null
+  },
+  "settlement": {
+    "recipients": [],
+    "escrow_bps": 0,
+    "total_bps": 0
+  },
+  "gold": {
+    "expected_status": "APPROVED",
+    "state_reason": "모델 자체는 01과 같이 APPROVED 후보이나, 정산 규칙에는 원본 해시만 등록됨. 변조본 해시로 입금을 시도하면 미등록 해시라 REJECTED여야 함",
+    "split": "dev",
+    "annotators": [
+      "hyeri"
+    ],
+    "annotation_minutes": null
+  }
+}
