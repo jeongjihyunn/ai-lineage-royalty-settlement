@@ -19,3 +19,17 @@ Hugging Face 모델 문서
 - AI는 법적 판단자가 아니라 근거 추출 보조 역할
 - 최종 정산 비율·지갑 주소·승인은 사람이 결정
 - Sepolia 테스트 ETH만 사용
+
+## 배포 정보 (Sepolia)
+
+| 항목 | 값 |
+| --- | --- |
+| 컨트랙트 | `LineageRoyaltySettlement` (`contracts/LineageRoyaltySettlement.sol`) |
+| 컨트랙트 주소 | [`0x651610df7DCA42d1273e159DdDFf1F22679f9fFA`](https://sepolia.etherscan.io/address/0x651610df7DCA42d1273e159DdDFf1F22679f9fFA) |
+| Reviewer | `0x9860b505569783A3f9b36a9cB1A3835745efE8f4` |
+| Operator | `0x40F57730A509fE02c451cABE1A916258c5dA2661` |
+| 배포 트랜잭션 | [`0xc7565cf9...ac86bc`](https://sepolia.etherscan.io/tx/0xc7565cf99f20370c6b2013261487536503a581b0823c7d3ead25b9e442ac86bc) |
+
+- 주소는 모두 공개 주소이며 개인키는 `.env`에만 두고 저장소에 올리지 않음
+- Reviewer와 Operator는 생성자에서 고정되며 같은 지갑일 수 없음
+- 컨트랙트를 다시 배포하면 주소가 바뀌므로 이 표를 함께 갱신함
