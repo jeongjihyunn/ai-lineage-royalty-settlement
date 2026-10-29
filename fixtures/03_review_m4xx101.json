@@ -1,0 +1,116 @@
+{
+  "schema_version": "0.2",
+  "case_id": "hf_m4xx101_llama_3_2_3b_lora_20261029",
+
+  "input": {
+    "model_id": "m4xx101/llama-3.2-3b-lora",
+    "model_url": "https://huggingface.co/m4xx101/llama-3.2-3b-lora",
+    "revision": null,
+    "checked_at": "2026-10-29",
+    "artifact_file_name": null,
+    "artifact_sha256": null
+  },
+
+  "components": [
+    {
+      "role": "base_model",
+      "name": "meta-llama/Llama-3.2-3B-Instruct",
+      "relationship": "base_for",
+      "publisher": "meta-llama",
+      "publisher_confidence": "high",
+      "rights_holder": null,
+      "rights_holder_status": "not_verified",
+      "license_id": "llama3.2",
+      "license_name": "Llama 3.2 Community License",
+      "evidence": [
+        {
+          "evidence_quote": "A QLoRA adapter fine-tuning Meta's Llama 3.2 3B Instruct on OpenHermes 2.5",
+          "evidence_location": "Model card introduction",
+          "source_url": "https://huggingface.co/m4xx101/llama-3.2-3b-lora"
+        }
+      ]
+    },
+    {
+      "role": "dataset",
+      "name": "teknium/OpenHermes-2.5",
+      "relationship": "trained_on",
+      "publisher": "teknium",
+      "publisher_confidence": "low",
+      "rights_holder": null,
+      "rights_holder_status": "unknown",
+      "license_id": null,
+      "license_name": null,
+      "evidence": [
+        {
+          "evidence_quote": "OpenHermes 2.5",
+          "evidence_location": "Model card introduction",
+          "source_url": "https://huggingface.co/m4xx101/llama-3.2-3b-lora"
+        }
+      ]
+    },
+    {
+      "role": "adapter",
+      "name": "m4xx101/llama-3.2-3b-lora",
+      "relationship": "adapter_of",
+      "publisher": "m4xx101",
+      "publisher_confidence": "high",
+      "rights_holder": null,
+      "rights_holder_status": "not_verified",
+      "license_id": "apache-2.0",
+      "license_name": "Apache License 2.0",
+      "evidence": [
+        {
+          "evidence_quote": "m4xx101 / llama-3.2-3b-lora",
+          "evidence_location": "Repository header",
+          "source_url": "https://huggingface.co/m4xx101/llama-3.2-3b-lora"
+        }
+      ]
+    }
+  ],
+
+  "license_analysis": {
+    "declared_license": {
+      "value": "apache-2.0",
+      "evidence_quote": "Apache 2.0 — same as the base Llama 3.2 model",
+      "evidence_location": "License section",
+      "source_url": "https://huggingface.co/m4xx101/llama-3.2-3b-lora"
+    },
+    "upstream_license": {
+      "value": "llama3.2",
+      "evidence_quote": "License: Use of Llama 3.2 is governed by the Llama 3.2 Community License",
+      "evidence_location": "Original model card license section",
+      "source_url": "https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct"
+    },
+    "license_metadata_mismatch": true,
+    "commercial_use_assessment": "review_required",
+    "findings": [
+      "하위 카드의 Apache-2.0 표기와 베이스 모델의 Llama 3.2 Community License 표기가 다름",
+      "데이터셋의 원천 권리자와 라이선스가 확인되지 않음"
+    ]
+  },
+
+  "policy": {
+    "automated_status": null,
+    "reasons": []
+  },
+
+  "review": {
+    "reviewer_decision": null,
+    "reviewer_wallet": null,
+    "approved_at": null
+  },
+
+  "settlement": {
+    "recipients": [],
+    "escrow_bps": 0,
+    "total_bps": 0
+  },
+
+  "gold": {
+    "expected_status": "REVIEW",
+    "state_reason": "상위 라이선스 표기 불일치와 데이터셋 권리·라이선스 미확인으로 사람의 검토가 필요함",
+    "split": "dev",
+    "annotators": ["jihyeon"],
+    "annotation_minutes": null
+  }
+}

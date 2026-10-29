@@ -1,0 +1,77 @@
+{
+  "schema_version": "0.2",
+  "case_id": "hf_<owner>_<model>_<date>",
+
+  "input": {
+    "model_id": null,
+    "model_url": null,
+    "revision": null,
+    "checked_at": null,
+    "artifact_file_name": null,
+    "artifact_sha256": null
+  },
+
+  "components": [
+    {
+      "role": "base_model",
+      "name": null,
+      "relationship": null,
+      "publisher": null,
+      "publisher_confidence": "unknown",
+      "rights_holder": null,
+      "rights_holder_status": "unknown",
+      "license_id": null,
+      "license_name": null,
+      "evidence": [
+        {
+          "evidence_quote": null,
+          "evidence_location": null,
+          "source_url": null
+        }
+      ]
+    }
+  ],
+
+  "license_analysis": {
+    "declared_license": {
+      "value": null,
+      "evidence_quote": null,
+      "evidence_location": null,
+      "source_url": null
+    },
+    "upstream_license": {
+      "value": null,
+      "evidence_quote": null,
+      "evidence_location": null,
+      "source_url": null
+    },
+    "license_metadata_mismatch": null,
+    "commercial_use_assessment": "review_required",
+    "findings": []
+  },
+
+  "policy": {
+    "automated_status": null,
+    "reasons": []
+  },
+
+  "review": {
+    "reviewer_decision": null,
+    "reviewer_wallet": null,
+    "approved_at": null
+  },
+
+  "settlement": {
+    "recipients": [],
+    "escrow_bps": 0,
+    "total_bps": 0
+  },
+
+  "gold": {
+    "expected_status": null,
+    "state_reason": null,
+    "split": "dev",
+    "annotators": [],
+    "annotation_minutes": null
+  }
+}
