@@ -1,0 +1,131 @@
+{
+  "schema_version": "0.2",
+  "case_id": "demo_escrow_unknown_recipient_20261029",
+
+  "input": {
+    "model_id": "demo/approved-lineage-lora",
+    "model_url": null,
+    "revision": null,
+    "checked_at": "2026-10-29",
+    "artifact_file_name": "demo-approved-lineage-lora.adapter",
+    "artifact_sha256": "TO_BE_GENERATED"
+  },
+
+  "components": [
+    {
+      "role": "base_model",
+      "name": "Demo Base Model",
+      "relationship": "base_for",
+      "publisher": "Demo Base Publisher",
+      "publisher_confidence": "high",
+      "rights_holder": "Demo Base Contributor",
+      "rights_holder_status": "demo_confirmed",
+      "license_id": "apache-2.0",
+      "license_name": "Apache License 2.0",
+      "evidence": [
+        {
+          "evidence_quote": "Controlled demonstration fixture: approved base-model contribution.",
+          "evidence_location": "Demo fixture definition",
+          "source_url": null
+        }
+      ]
+    },
+    {
+      "role": "dataset",
+      "name": "Demo Training Dataset",
+      "relationship": "trained_on",
+      "publisher": null,
+      "publisher_confidence": "unknown",
+      "rights_holder": null,
+      "rights_holder_status": "unknown",
+      "license_id": "cc-by-4.0",
+      "license_name": "Creative Commons Attribution 4.0",
+      "evidence": [
+        {
+          "evidence_quote": "Controlled demonstration fixture: dataset contributor wallet is intentionally unknown.",
+          "evidence_location": "Demo fixture definition",
+          "source_url": null
+        }
+      ]
+    },
+    {
+      "role": "adapter",
+      "name": "demo/approved-lineage-lora",
+      "relationship": "adapter_of",
+      "publisher": "Demo Adapter Publisher",
+      "publisher_confidence": "high",
+      "rights_holder": "Demo Adapter Contributor",
+      "rights_holder_status": "demo_confirmed",
+      "license_id": "apache-2.0",
+      "license_name": "Apache License 2.0",
+      "evidence": [
+        {
+          "evidence_quote": "Controlled demonstration fixture: approved adapter contribution.",
+          "evidence_location": "Demo fixture definition",
+          "source_url": null
+        }
+      ]
+    }
+  ],
+
+  "license_analysis": {
+    "declared_license": {
+      "value": "apache-2.0",
+      "evidence_quote": "Controlled demonstration fixture: commercial use is allowed.",
+      "evidence_location": "Demo fixture definition",
+      "source_url": null
+    },
+    "upstream_license": {
+      "value": "apache-2.0",
+      "evidence_quote": "Controlled demonstration fixture: base model commercial use is allowed.",
+      "evidence_location": "Demo fixture definition",
+      "source_url": null
+    },
+    "license_metadata_mismatch": false,
+    "commercial_use_assessment": "allowed",
+    "findings": [
+      "라이선스 정책상 상업 이용을 막는 조건은 없음",
+      "데이터셋 기여자의 실제 수령 지갑만 확정되지 않음"
+    ]
+  },
+
+  "policy": {
+    "automated_status": null,
+    "reasons": []
+  },
+
+  "review": {
+    "reviewer_decision": null,
+    "reviewer_wallet": null,
+    "approved_at": null
+  },
+
+  "settlement": {
+    "recipients": [
+      {
+        "label": "base_model_contributor",
+        "wallet": null,
+        "share_bps": 4000,
+        "payout_status": "CLAIMABLE"
+      },
+      {
+        "label": "adapter_contributor",
+        "wallet": null,
+        "share_bps": 3000,
+        "payout_status": "CLAIMABLE"
+      }
+    ],
+    "escrow_bps": 3000,
+    "escrow_reason": "데이터셋 기여자의 수령 지갑이 확정되지 않음",
+    "escrow_release_condition": "Reviewer가 수령자와 지갑 주소를 검토·확정한 뒤 releaseEscrow 실행",
+    "total_bps": 10000
+  },
+
+  "gold": {
+    "expected_status": "APPROVED",
+    "state_reason": "라이선스 정책은 통과했으나 데이터셋 기여자의 수령 지갑이 없어 해당 몫 30%를 에스크로에 보관함",
+    "split": "dev",
+    "annotators": ["jihyeon"],
+    "annotation_minutes": null
+  }
+}
