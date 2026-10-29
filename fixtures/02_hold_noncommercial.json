@@ -1,0 +1,103 @@
+{
+  "schema_version": "0.2",
+  "case_id": "hf_tmadl_ic_qwen3_5_orpo_400_20261029",
+
+  "input": {
+    "model_id": "tmadl/IC-Qwen3.5-ORPO-400",
+    "model_url": "https://huggingface.co/tmadl/IC-Qwen3.5-ORPO-400",
+    "revision": null,
+    "checked_at": "2026-10-29",
+    "artifact_file_name": null,
+    "artifact_sha256": null
+  },
+
+  "components": [
+    {
+      "role": "base_model",
+      "name": "unsloth/Qwen3.5-27B",
+      "relationship": "base_for",
+      "publisher": "unsloth",
+      "publisher_confidence": "high",
+      "rights_holder": null,
+      "rights_holder_status": "not_verified",
+      "license_id": "apache-2.0",
+      "license_name": "Apache License 2.0",
+      "evidence": [
+        {
+          "evidence_quote": "base_model = AutoModelForCausalLM.from_pretrained(\"unsloth/Qwen3.5-27B\")",
+          "evidence_location": "PEFT usage example",
+          "source_url": "https://huggingface.co/tmadl/IC-Qwen3.5-ORPO-400"
+        }
+      ]
+    },
+    {
+      "role": "adapter",
+      "name": "tmadl/IC-Qwen3.5-ORPO-400",
+      "relationship": "adapter_of",
+      "publisher": "tmadl",
+      "publisher_confidence": "high",
+      "rights_holder": "Tamas Madl",
+      "rights_holder_status": "declared",
+      "license_id": "cc-by-nc-4.0",
+      "license_name": "Creative Commons Attribution-NonCommercial 4.0",
+      "evidence": [
+        {
+          "evidence_quote": "The LoRA adapter weights and accompanying files are licensed under CC-BY-NC-4.0.",
+          "evidence_location": "License section",
+          "source_url": "https://huggingface.co/tmadl/IC-Qwen3.5-ORPO-400"
+        },
+        {
+          "evidence_quote": "Copyright © 2026 Tamas Madl.",
+          "evidence_location": "License section",
+          "source_url": "https://huggingface.co/tmadl/IC-Qwen3.5-ORPO-400"
+        }
+      ]
+    }
+  ],
+
+  "license_analysis": {
+    "declared_license": {
+      "value": "cc-by-nc-4.0",
+      "evidence_quote": "Commercial uses are not granted under CC BY-NC 4.0.",
+      "evidence_location": "License section",
+      "source_url": "https://huggingface.co/tmadl/IC-Qwen3.5-ORPO-400"
+    },
+    "upstream_license": {
+      "value": "apache-2.0",
+      "evidence_quote": "The base model (`unsloth/Qwen3.5-27B`) is Apache 2.0.",
+      "evidence_location": "License section",
+      "source_url": "https://huggingface.co/tmadl/IC-Qwen3.5-ORPO-400"
+    },
+    "license_metadata_mismatch": false,
+    "commercial_use_assessment": "not_allowed",
+    "findings": [
+      "어댑터 자체가 CC BY-NC 4.0으로 표기됨",
+      "카드가 상업적 사용은 허가되지 않는다고 명시함"
+    ]
+  },
+
+  "policy": {
+    "automated_status": null,
+    "reasons": []
+  },
+
+  "review": {
+    "reviewer_decision": null,
+    "reviewer_wallet": null,
+    "approved_at": null
+  },
+
+  "settlement": {
+    "recipients": [],
+    "escrow_bps": 0,
+    "total_bps": 0
+  },
+
+  "gold": {
+    "expected_status": "HOLD",
+    "state_reason": "어댑터의 CC BY-NC 4.0 라이선스가 상업적 사용을 허가하지 않으므로 유료 사용과 정산을 보류함",
+    "split": "dev",
+    "annotators": ["jihyeon"],
+    "annotation_minutes": null
+  }
+}
