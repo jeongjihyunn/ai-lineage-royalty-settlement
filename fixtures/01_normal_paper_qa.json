@@ -1,0 +1,126 @@
+{
+  "schema_version": "0.2",
+  "case_id": "hf_whosouravsharma_paper_qa_lora_20261029",
+
+  "input": {
+    "model_id": "whosouravsharma/paper-qa-lora",
+    "model_url": "https://huggingface.co/whosouravsharma/paper-qa-lora",
+    "revision": null,
+    "checked_at": "2026-10-29",
+    "artifact_file_name": null,
+    "artifact_sha256": null
+  },
+
+  "components": [
+    {
+      "role": "base_model",
+      "name": "Qwen/Qwen2.5-1.5B-Instruct",
+      "relationship": "base_for",
+      "publisher": "Qwen",
+      "publisher_confidence": "high",
+      "rights_holder": null,
+      "rights_holder_status": "not_verified",
+      "license_id": "apache-2.0",
+      "license_name": "Apache License 2.0",
+      "evidence": [
+        {
+          "evidence_quote": "A QLoRA adapter for `Qwen/Qwen2.5-1.5B-Instruct`.",
+          "evidence_location": "Model card introduction",
+          "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora"
+        },
+        {
+          "evidence_quote": "License: apache-2.0",
+          "evidence_location": "Original model card header",
+          "source_url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct"
+        }
+      ]
+    },
+    {
+      "role": "dataset",
+      "name": "whosouravsharma/paper-qa-qasper-sft",
+      "relationship": "trained_on",
+      "publisher": "whosouravsharma",
+      "publisher_confidence": "high",
+      "rights_holder": null,
+      "rights_holder_status": "not_verified",
+      "license_id": "cc-by-4.0",
+      "license_name": "Creative Commons Attribution 4.0",
+      "evidence": [
+        {
+          "evidence_quote": "Training data is QASPER (CC BY 4.0)",
+          "evidence_location": "Model card summary table",
+          "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora"
+        }
+      ]
+    },
+    {
+      "role": "adapter",
+      "name": "whosouravsharma/paper-qa-lora",
+      "relationship": "adapter_of",
+      "publisher": "whosouravsharma",
+      "publisher_confidence": "high",
+      "rights_holder": null,
+      "rights_holder_status": "not_verified",
+      "license_id": "apache-2.0",
+      "license_name": "Apache License 2.0",
+      "evidence": [
+        {
+          "evidence_quote": "Developed by | whosouravsharma",
+          "evidence_location": "Model details table",
+          "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora"
+        },
+        {
+          "evidence_quote": "Model type | LoRA adapter (QLoRA, 4-bit NF4) for a 1.5B-parameter decoder-only chat model",
+          "evidence_location": "Model details table",
+          "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora"
+        }
+      ]
+    }
+  ],
+
+  "license_analysis": {
+    "declared_license": {
+      "value": "apache-2.0",
+      "evidence_quote": "License | Apache 2.0, the same as the base model. Training data is QASPER (CC BY 4.0)",
+      "evidence_location": "Model card summary table",
+      "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora"
+    },
+    "upstream_license": {
+      "value": "apache-2.0",
+      "evidence_quote": "License: apache-2.0",
+      "evidence_location": "Original model card header",
+      "source_url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct"
+    },
+    "license_metadata_mismatch": false,
+    "commercial_use_assessment": "allowed",
+    "findings": [
+      "어댑터와 베이스 모델의 라이선스 표기가 모두 Apache-2.0임",
+      "학습 데이터는 카드에 CC BY 4.0으로 표기됨"
+    ]
+  },
+
+  "policy": {
+    "automated_status": null,
+    "reasons": []
+  },
+
+  "review": {
+    "reviewer_decision": null,
+    "reviewer_wallet": null,
+    "approved_at": null
+  },
+
+  "settlement": {
+    "recipients": [],
+    "escrow_bps": 0,
+    "total_bps": 0
+  },
+
+  "gold": {
+    "expected_status": "APPROVED",
+    "state_reason": "직접 계보와 라이선스 표기가 확인되고, 비상업 제한 또는 상위 라이선스 불일치가 발견되지 않음",
+    "split": "dev",
+    "annotators": ["jihyeon"],
+    "annotation_minutes": null
+  }
+}
