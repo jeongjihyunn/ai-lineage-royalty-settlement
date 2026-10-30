@@ -122,7 +122,7 @@
   },
 
   "gold": {
-    "expected_status": "APPROVED",
+    "expected_status": "APPROVED_WITH_ESCROW",
     "state_reason": "라이선스 정책은 통과했으나 데이터셋 기여자의 수령 지갑이 없어 해당 몫 30%를 에스크로에 보관함",
     "split": "dev",
     "annotators": ["jihyeon"],
