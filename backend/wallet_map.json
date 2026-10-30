@@ -1,0 +1,51 @@
+{
+  "_comment": "재료 이름 -> 수령 지갑(공개 주소만). null은 매핑 미확정 placeholder이며 미확인 수령자로 처리되어 해당 몫은 escrow로 감.",
+  "materials": {
+    "Qwen/Qwen2.5-1.5B-Instruct": {
+      "holder": "Holder_A",
+      "wallet": "0x4D9352a9d5512BBc171107ED4CC4F67fb0261F18",
+      "source": "팀 지정 시연 매핑 (2026-10-30)"
+    },
+    "whosouravsharma/paper-qa-qasper-sft": {
+      "holder": "Holder_B",
+      "wallet": "0xcc5BDcAa07b00fc9a40E4629169E83106090672d",
+      "source": "팀 지정 시연 매핑 (2026-10-30)"
+    },
+    "whosouravsharma/paper-qa-lora": {
+      "holder": "Holder_C",
+      "wallet": "0x69F926Dd50FD6D48F2d89dCEB5d425FE861f99e3",
+      "source": "팀 지정 시연 매핑 (2026-10-30)"
+    },
+
+    "unsloth/Qwen3.5-27B": null,
+    "tmadl/IC-Qwen3.5-ORPO-400": null,
+
+    "meta-llama/Llama-3.2-3B-Instruct": {
+      "holder": "Holder_A",
+      "wallet": "0x4D9352a9d5512BBc171107ED4CC4F67fb0261F18",
+      "source": "CLAUDE.md 시연 매핑 Meta->Holder_A"
+    },
+    "teknium/OpenHermes-2.5": {
+      "holder": "Holder_B",
+      "wallet": "0xcc5BDcAa07b00fc9a40E4629169E83106090672d",
+      "source": "CLAUDE.md 시연 매핑 teknium->Holder_B"
+    },
+    "m4xx101/llama-3.2-3b-lora": {
+      "holder": "Holder_C",
+      "wallet": "0x69F926Dd50FD6D48F2d89dCEB5d425FE861f99e3",
+      "source": "CLAUDE.md 시연 매핑 m4xx101->Holder_C"
+    },
+
+    "Demo Base Model": {
+      "holder": "Holder_A",
+      "wallet": "0x4D9352a9d5512BBc171107ED4CC4F67fb0261F18",
+      "source": "fixtures/03_escrow_unknown_recipient.json settlement (base_model_contributor)"
+    },
+    "Demo Training Dataset": null,
+    "demo/approved-lineage-lora": {
+      "holder": "Holder_C",
+      "wallet": "0x69F926Dd50FD6D48F2d89dCEB5d425FE861f99e3",
+      "source": "fixtures/03_escrow_unknown_recipient.json settlement (adapter_contributor)"
+    }
+  }
+}
