@@ -1,0 +1,33 @@
+{
+  "_comment": "정책 엔진 설정. 비율은 시연용 미확정 안(팀 합의 전). 라이선스 분류표는 정답표 규칙표와 같게 유지해야 함",
+  "role_weights_bps": {
+    "base_model": 4000,
+    "dataset": 3000,
+    "adapter": 3000
+  },
+  "license_classes": {
+    "allowed": {
+      "ids": ["mit", "apache-2.0", "cc-by-4.0"],
+      "prefixes": ["bsd-"]
+    },
+    "conditional": {
+      "ids": ["llama3.2"],
+      "substrings": ["openrail"]
+    },
+    "prohibited": {
+      "tokens": ["nc"],
+      "name_pattern": "non[\\s-]?commercial"
+    }
+  },
+  "license_aliases": {
+    "apache-2": "apache-2.0",
+    "creative-commons-attribution-4.0": "cc-by-4.0",
+    "creative-commons-attribution-4.0-international": "cc-by-4.0",
+    "cc-by-4.0-international": "cc-by-4.0",
+    "creative-commons-attribution-noncommercial-4.0": "cc-by-nc-4.0",
+    "creative-commons-attribution-noncommercial-4.0-international": "cc-by-nc-4.0",
+    "cc-by-nc-4.0-international": "cc-by-nc-4.0",
+    "llama-3.2": "llama3.2",
+    "llama-3.2-community": "llama3.2"
+  }
+}
