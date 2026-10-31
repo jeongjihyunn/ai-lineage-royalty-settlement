@@ -19,7 +19,7 @@ AI 모델 계보 기반 저작권 사용료 자동 정산 시스템 (블록체�
 - `registerSettlementRule(modelHash, recipients[], bps[], escrowBps, evidenceHash)`: onlyReviewer, `sum(bps)+escrowBps == 10000`, 같은 해시 재등록 거부
 - `deposit(modelHash)` payable: onlyOperator, 등록된 해시만. `claimable[modelHash][addr]`와 모델별 escrow에 기록. 반올림 잔여(dust) 처리
 - `claim(modelHash)`: 호출자 본인 몫만. 잔액을 0으로 만든 뒤 전송, ReentrancyGuard
-- `releaseEscrow(modelHash, recipient)`: onlyReviewer, 직접 송금이 아니라 수령자의 claimable로 이동
+- `releaseEscrow(modelHash, recipient, amount, releaseEvidenceHash)`: onlyReviewer, 직접 송금이 아니라 수령자의 claimable로 이동
 - OpenZeppelin AccessControl, 등록·입금·수령·escrow 해제 이벤트 emit
 - 테스트: 무권한 호출 거부, 미등록 해시 거부, 재진입 방어
 
@@ -34,7 +34,7 @@ AI 모델 계보 기반 저작권 사용료 자동 정산 시스템 (블록체�
 ## 스키마·정답표 (`docs/`, `fixtures/`)
 
 - 스키마: `docs/schema-v0.2.json`. 예시: `fixtures/03_review_m4xx101.json`
-- 열거형: role(base_model/dataset/adapter/merged_from), relationship(base_for/trained_on/adapter_of/merged_into), publisher_confidence(high/medium/low/unknown), rights_holder_status(verified/not_verified/unknown), commercial_use(allowed/conditional/prohibited/unknown), split(dev/eval)
+- 열거형: role(base_model/dataset/adapter/merged_from), relationship(base_for/trained_on/adapter_of/merged_into), publisher_confidence(high/medium/low/unknown), rights_holder_status(unknown/not_verified/demo_confirmed; verified는 실제 본인 인증 시에만 사용, 데모에서는 쓰지 않음), commercial_use(allowed/conditional/prohibited/unknown), split(dev/eval)
 - 정답표 규칙: 카드에 적힌 것만 쓰기, 모르면 `null`(빈 문자열·"unknown" 금지), 근거 문장은 원문 그대로, 근거 없는 rights_holder는 `null`, 이름은 소문자 원본 ID, 선언 라이선스와 상위 라이선스를 분리해 대조
 - dev/eval 분리: eval 정답표는 프롬프트 수정 시 보지 않고 마지막에 한 번만 채점. 확정한 정답표는 이유 없이 고치지 않음
 - 걸린 시간(`annotation_minutes`)을 기록 (사람 vs 시스템 비교 근거)
