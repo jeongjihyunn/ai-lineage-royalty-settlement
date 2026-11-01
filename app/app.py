@@ -32,6 +32,13 @@ ROLE_VIEW = {
     "dataset": ("데이터셋", "#0ea5e9"),
     "adapter": ("어댑터", "#f59e0b"),
 }
+EXAMPLES = {
+    "01_normal_paper_qa": "정상 정산",
+    "02_hold_noncommercial": "상업 금지 재료",
+    "03_escrow_unknown_recipient": "지갑 미확인",
+    "03_review_m4xx101": "라이선스 애매",
+    "04_hash_mismatch": "파일 바꿔치기",
+}
 STEPS = ["모델 카드 분석", "정책 판정", "Reviewer 승인", "블록체인 등록"]
 APPROVABLE = (pe.APPROVED, pe.APPROVED_WITH_ESCROW)
 
@@ -40,6 +47,7 @@ CSS = """
 .block-container {max-width: 900px; padding-top: 2.5rem;}
 .stAppDeployButton {display: none;}
 .hero h1 {font-size: 1.9rem; margin: 0 0 .25rem; padding: 0;}
+.hero {margin-bottom: 1.5rem;}
 .hero p {opacity: .65; margin: 0;}
 .steps {display: flex; gap: .5rem; margin: 1.25rem 0 1.75rem;}
 .step {flex: 1; padding: .55rem .7rem; border-radius: 10px; border: 1px solid rgba(128,128,128,.25); font-size: .85rem; opacity: .45; word-break: keep-all;}
@@ -88,23 +96,21 @@ def short_wallet(wallet):
 
 
 def load_case():
-    """fixture를 고르거나 JSON을 올리면 (case, 원본 바이트, 이름)을 반환한다."""
-    st.sidebar.header("검토할 케이스")
-    fixtures = sorted(FIXTURES_DIR.glob("*.json"))
-    source = st.sidebar.radio("입력", ["fixture 선택", "JSON 업로드"], label_visibility="collapsed")
-    if source == "fixture 선택":
-        path = st.sidebar.selectbox("fixture", fixtures, format_func=lambda p: p.stem)
-        if not path:
-            return None
-        raw = path.read_bytes()
-        name = path.name
+    """모델 정보 JSON을 올리거나 팀 예제를 고르면 (case, 원본 바이트, 이름)을 반환한다."""
+    uploaded = st.file_uploader("모델 정보 파일 (JSON)", type="json")
+    if uploaded:
+        raw, name = uploaded.getvalue(), uploaded.name
     else:
-        uploaded = st.sidebar.file_uploader("case JSON", type="json")
-        if not uploaded:
-            st.info("왼쪽에서 case JSON 파일을 올리세요.")
+        fixtures = {p.stem: p for p in sorted(FIXTURES_DIR.glob("*.json"))}
+        stem = st.pills(
+            "또는 팀이 만든 예제",
+            list(fixtures),
+            format_func=lambda s: EXAMPLES.get(s, s),
+            default=next(iter(fixtures), None),
+        )
+        if not stem:
             return None
-        raw = uploaded.getvalue()
-        name = uploaded.name
+        raw, name = fixtures[stem].read_bytes(), fixtures[stem].name
     try:
         return json.loads(raw), raw, name
     except json.JSONDecodeError as e:
@@ -224,9 +230,8 @@ def main():
         "<p>AI 모델을 만든 재료의 권리자에게 사용료를 나눠도 되는지 판정하고, 승인하면 분배 규칙을 블록체인에 등록합니다.</p></div>",
         unsafe_allow_html=True,
     )
-    steps = st.empty()
-
     loaded = load_case()
+    steps = st.empty()
     if not loaded:
         steps.markdown(steps_html(["", "", "", ""]), unsafe_allow_html=True)
         return
