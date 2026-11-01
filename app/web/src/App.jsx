@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, animate, motion } from "framer-motion";
 
 const STATUS = {
   APPROVED: { label: "정산 가능", tone: "green", desc: "모든 재료의 라이선스와 수령 지갑이 확인됐습니다." },
@@ -81,8 +81,6 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="glow glow-a" />
-      <div className="glow glow-b" />
       <main>
         <motion.header initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }}>
           <h1>계보 정산 검토</h1>
@@ -258,6 +256,7 @@ function Verdict({ status, modelId }) {
       animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
       transition={{ duration: 0.6, ease }}
     >
+      <span className="border-beam" aria-hidden="true" />
       <div className="verdict-model">{modelId}</div>
       <div className="verdict-label">{view.label}</div>
       <div className="verdict-desc">{view.desc}</div>
@@ -306,18 +305,37 @@ function Lineage({ review }) {
         <svg className="wires" viewBox={`0 0 100 ${height}`} preserveAspectRatio="none" style={{ height }}>
           {parts.map((c, i) => {
             const y = i * (PART_H + PART_GAP) + PART_H / 2;
+            const d = `M0 ${y} C 55 ${y}, 45 ${mid}, 100 ${mid}`;
             return (
-              <motion.path
-                key={i}
-                d={`M0 ${y} C 55 ${y}, 45 ${mid}, 100 ${mid}`}
-                stroke={role(c.role).color}
-                strokeWidth="2"
-                fill="none"
-                vectorEffect="non-scaling-stroke"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.8 }}
-                transition={{ delay: 0.5 + i * 0.12, duration: 0.7, ease }}
-              />
+              <g key={i}>
+                <motion.path
+                  d={d}
+                  stroke="var(--wire)"
+                  strokeWidth="2"
+                  fill="none"
+                  vectorEffect="non-scaling-stroke"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ delay: 0.5 + i * 0.12, duration: 0.7, ease }}
+                />
+                {/* 재료 → 모델로 흐르는 빛 (Magic UI Animated Beam 아이디어) */}
+                <motion.path
+                  d={d}
+                  stroke={role(c.role).color}
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  fill="none"
+                  vectorEffect="non-scaling-stroke"
+                  pathLength={100}
+                  strokeDasharray="18 82"
+                  initial={{ strokeDashoffset: 100, opacity: 0 }}
+                  animate={{ strokeDashoffset: [100, 0], opacity: 1 }}
+                  transition={{
+                    strokeDashoffset: { delay: 1.2 + i * 0.25, duration: 1.8, repeat: Infinity, repeatDelay: 0.6, ease: "easeInOut" },
+                    opacity: { delay: 1.2 + i * 0.25, duration: 0.2 },
+                  }}
+                />
+              </g>
             );
           })}
         </svg>
@@ -371,12 +389,27 @@ function Shares({ result }) {
             <i style={{ background: r.color }} />
             <span className="legend-label">{r.label}</span>
             <span className="wallet">{r.wallet}</span>
-            <strong>{r.pct}%</strong>
+            <strong><Ticker value={r.pct} />%</strong>
           </li>
         ))}
       </ul>
     </section>
   );
+}
+
+// 0에서 값까지 숫자가 올라간다 (Magic UI Number Ticker 아이디어).
+function Ticker({ value }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const controls = animate(0, value, {
+      delay: 1,
+      duration: 1,
+      ease,
+      onUpdate: (v) => ref.current && (ref.current.textContent = Math.round(v)),
+    });
+    return () => controls.stop();
+  }, [value]);
+  return <span ref={ref}>0</span>;
 }
 
 function Approve({ register, approved, onApprove }) {
