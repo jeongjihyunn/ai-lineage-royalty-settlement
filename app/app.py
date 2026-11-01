@@ -56,7 +56,6 @@ CSS = """
 .verdict.review {background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.5);}
 .verdict .model {font-size: .8rem; opacity: .65; word-break: break-all;}
 .verdict .label {font-size: 1.45rem; font-weight: 700; margin: .15rem 0;}
-.verdict .code {font-family: monospace; font-size: .75rem; opacity: .55; margin-left: .4rem; font-weight: 400;}
 .lineage {display: flex; gap: .9rem; flex-wrap: wrap; align-items: center; margin-bottom: 2rem;}
 .parts {display: flex; flex-direction: column; gap: .5rem; flex: 1 1 340px;}
 .part {border-left: 4px solid; border-radius: 8px; padding: .5rem .8rem; background: rgba(128,128,128,.07);}
@@ -125,7 +124,7 @@ def show_verdict(result, model_id):
     label, cls, desc = STATUS_VIEW[result["status"]]
     st.markdown(
         f'<div class="verdict {cls}"><div class="model">{escape(model_id)}</div>'
-        f'<div class="label">{label}<span class="code">{result["status"]}</span></div>'
+        f'<div class="label">{label}</div>'
         f"<div>{desc}</div></div>",
         unsafe_allow_html=True,
     )
@@ -192,16 +191,14 @@ def show_register(result, case, raw):
         st.warning("모델 파일 해시(input.artifact_sha256)가 없어 등록할 수 없습니다.")
         return "blocked", ""
     try:
-        args = pe.to_contract_args(result, model_hash, hashlib.sha256(raw).hexdigest())
+        pe.to_contract_args(result, model_hash, hashlib.sha256(raw).hexdigest())
     except ValueError as e:
         st.error(f"등록 인자 생성 실패: {e}")
         return "blocked", ""
 
     if not st.button("승인하고 블록체인에 등록", type="primary"):
         return "now", ""
-    st.warning("web3 등록 함수 연결 전입니다. 아래 인자로 registerSettlementRule을 호출하게 됩니다.")
-    with st.expander("registerSettlementRule 인자", expanded=True):
-        st.json(args)
+    st.warning("블록체인 등록 함수 연결 전입니다.")
     return "done", "now"
 
 
@@ -242,7 +239,8 @@ def main():
     if result["status"] in APPROVABLE:
         show_shares(result)
     approve_state, register_state = show_register(result, case, raw)
-    show_reasons(result["reasons"])
+    if result["status"] != pe.APPROVED:
+        show_reasons(result["reasons"])
 
     steps.markdown(steps_html(["done", "done", approve_state, register_state]), unsafe_allow_html=True)
 
