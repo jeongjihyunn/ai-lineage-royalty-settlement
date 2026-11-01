@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, MotionConfig, animate, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, animate, motion, useInView } from "framer-motion";
 
 const STATUS = {
   APPROVED: { label: "정산 가능", tone: "green", desc: "모든 재료의 라이선스와 수령 지갑이 확인됐습니다." },
@@ -14,6 +14,7 @@ const ROLES = {
 };
 const STEPS = ["모델 카드 분석", "정책 판정", "Reviewer 승인", "블록체인 등록"];
 const APPROVABLE = ["APPROVED", "APPROVED_WITH_ESCROW"];
+const OK_REASON = "라이선스·근거·수령 지갑 확인됨";
 const ease = [0.22, 1, 0.36, 1];
 
 const shortWallet = (w) => (w && w.length > 12 ? `${w.slice(0, 6)}…${w.slice(-4)}` : w || "");
@@ -309,7 +310,6 @@ function Verdict({ status, modelId }) {
       animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
       transition={{ duration: 0.6, ease }}
     >
-      <span className="border-beam" aria-hidden="true" />
       <div className="verdict-model">{modelId}</div>
       <div className="verdict-label">{view.label}</div>
       <div className="verdict-desc">{view.desc}</div>
@@ -318,14 +318,17 @@ function Verdict({ status, modelId }) {
 }
 
 const PART_H = 76;
-const PART_GAP = 12;
 
 function Lineage({ review }) {
   const wallets = Object.fromEntries(review.result.recipients.map((r) => [`${r.role}|${r.name}`, r.wallet]));
   const approvable = APPROVABLE.includes(review.result.status);
   const parts = review.components;
-  const height = parts.length * PART_H + (parts.length - 1) * PART_GAP;
-  const mid = height / 2;
+  // 정책 엔진이 재료에 붙인 문제(확인됨 제외)를 재료별로 모은다.
+  const issues = {};
+  for (const r of review.result.reasons || []) {
+    if (r.message === OK_REASON) continue;
+    (issues[r.target] ||= []).push(r.message);
+  }
 
   return (
     <section className="block">
@@ -335,6 +338,7 @@ function Lineage({ review }) {
           {parts.map((c, i) => {
             const r = role(c.role);
             const wallet = wallets[`${c.role}|${c.name}`];
+            const problems = issues[`${c.role} ${c.name}`];
             return (
               <motion.div
                 key={`${c.role}-${c.name}`}
@@ -350,58 +354,19 @@ function Lineage({ review }) {
                   <code>{c.license || "license ?"}</code>
                   {approvable && (wallet ? <span className="wallet">{shortWallet(wallet)}</span> : <span className="warn">지갑 미확인</span>)}
                 </span>
+                {problems && (
+                  <span className="issue" tabIndex={0} aria-label={problems.join(", ")}>
+                    !
+                    <span className="issue-tip" role="tooltip">
+                      {problems.map((m) => <span key={m}>{m}</span>)}
+                    </span>
+                  </span>
+                )}
               </motion.div>
             );
           })}
         </div>
 
-        <svg className="wires" viewBox={`0 0 100 ${height}`} preserveAspectRatio="none" style={{ height }}>
-          {parts.map((c, i) => {
-            const y = i * (PART_H + PART_GAP) + PART_H / 2;
-            const d = `M0 ${y} C 55 ${y}, 45 ${mid}, 100 ${mid}`;
-            return (
-              <g key={i}>
-                <motion.path
-                  d={d}
-                  stroke="var(--wire)"
-                  strokeWidth="2"
-                  fill="none"
-                  vectorEffect="non-scaling-stroke"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ delay: 0.5 + i * 0.12, duration: 0.7, ease }}
-                />
-                {/* 재료 → 모델로 흐르는 빛 (Magic UI Animated Beam 아이디어) */}
-                <motion.path
-                  d={d}
-                  stroke={role(c.role).color}
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  fill="none"
-                  vectorEffect="non-scaling-stroke"
-                  pathLength={100}
-                  strokeDasharray="18 82"
-                  initial={{ strokeDashoffset: 100, opacity: 0 }}
-                  animate={{ strokeDashoffset: [100, 0], opacity: 1 }}
-                  transition={{
-                    strokeDashoffset: { delay: 1.2 + i * 0.25, duration: 1.8, repeat: Infinity, repeatDelay: 0.6, ease: "easeInOut" },
-                    opacity: { delay: 1.2 + i * 0.25, duration: 0.2 },
-                  }}
-                />
-              </g>
-            );
-          })}
-        </svg>
-
-        <motion.div
-          className="target glass"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.9, duration: 0.5, ease }}
-        >
-          <span>검토 대상 모델</span>
-          <strong>{review.model.id}</strong>
-        </motion.div>
       </div>
     </section>
   );
@@ -419,30 +384,48 @@ function Shares({ result }) {
     rows.push({ key: "escrow", label: "에스크로 · 컨트랙트에 보관", color: "var(--mute)", wallet: "—", pct: result.escrow_bps / 100, escrow: true });
   }
 
+  // 화면에 보일 때 왼쪽부터 한 칸씩 차오른다.
+  const ref = useRef(null);
+  const seen = useInView(ref, { once: true, amount: 0.6 });
+  const [hover, setHover] = useState(null);
+
   return (
     <section className="block">
       <h2>사용료 분배</h2>
-      <div className="bar">
+      <div className="bar" ref={ref}>
         {rows.map((r, i) => (
           <motion.div
             key={r.key}
-            className={`seg ${r.escrow ? "escrow" : ""}`}
-            style={{ background: r.escrow ? undefined : r.color, width: `${r.pct}%`, originX: 0 }}
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ delay: 1 + i * 0.15, duration: 0.6, ease }}
+            className={`seg ${r.escrow ? "escrow" : ""} ${hover && hover !== r.key ? "dim" : ""}`}
+            style={{ background: r.escrow ? undefined : r.color }}
+            onMouseEnter={() => setHover(r.key)}
+            onMouseLeave={() => setHover(null)}
+            initial={{ width: "0%" }}
+            animate={seen ? { width: `${r.pct}%` } : undefined}
+            transition={{ delay: i * 0.45, duration: 0.7, ease }}
           >
-            {r.pct}%
+            <motion.span
+              initial={{ opacity: 0, y: 6 }}
+              animate={seen ? { opacity: 1, y: 0 } : undefined}
+              transition={{ delay: i * 0.45 + 0.45, duration: 0.4, ease }}
+            >
+              {r.pct}%
+            </motion.span>
           </motion.div>
         ))}
       </div>
       <ul className="legend">
         {rows.map((r) => (
-          <li key={r.key}>
+          <li
+            key={r.key}
+            className={hover === r.key ? "on" : hover ? "dim" : ""}
+            onMouseEnter={() => setHover(r.key)}
+            onMouseLeave={() => setHover(null)}
+          >
             <i style={{ background: r.color }} />
             <span className="legend-label">{r.label}</span>
             <span className="wallet">{r.wallet}</span>
-            <strong><Ticker value={r.pct} />%</strong>
+            <strong><Ticker value={r.pct} start={seen} /></strong>
           </li>
         ))}
       </ul>
@@ -451,18 +434,18 @@ function Shares({ result }) {
 }
 
 // 0에서 값까지 숫자가 올라간다 (Magic UI Number Ticker 아이디어).
-function Ticker({ value }) {
+function Ticker({ value, start = true }) {
   const ref = useRef(null);
   useEffect(() => {
+    if (!start) return;
     const controls = animate(0, value, {
-      delay: 1,
-      duration: 1,
+      duration: 1.2,
       ease,
       onUpdate: (v) => ref.current && (ref.current.textContent = Math.round(v)),
     });
     return () => controls.stop();
-  }, [value]);
-  return <span ref={ref}>0</span>;
+  }, [value, start]);
+  return <><span ref={ref}>0</span>%</>;
 }
 
 function Approve({ register, approved, onApprove }) {
