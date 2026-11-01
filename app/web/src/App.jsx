@@ -168,20 +168,73 @@ function Input({ examples, source, upload, onExample, onFile }) {
       </div>
 
       <div className="examples">
-        <span className="examples-title">팀이 만든 예제</span>
-        <div className="example-list">
-          {examples.map((ex) => {
-            const active = source?.kind === "example" && source.id === ex.id;
-            return (
-              <button key={ex.id} className={`example ${active ? "active" : ""}`} onClick={() => onExample(ex.id)}>
-                {active && <motion.span layoutId="example-pill" className="example-bg" transition={{ type: "spring", stiffness: 380, damping: 32 }} />}
-                <span className="example-label">{ex.label}</span>
-              </button>
-            );
-          })}
-        </div>
+        <span className="examples-title" id="example-label">팀이 만든 예제</span>
+        <ExampleSelect examples={examples} value={source?.kind === "example" ? source.id : null} onChange={onExample} />
       </div>
     </section>
+  );
+}
+
+function ExampleSelect({ examples, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const current = examples.find((ex) => ex.id === value);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => !ref.current?.contains(e.target) && setOpen(false);
+    const esc = (e) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+
+  return (
+    <div className="select" ref={ref}>
+      <button
+        className={`select-button ${open ? "open" : ""}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-labelledby="example-label"
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className={current ? "" : "placeholder"}>{current ? current.label : "예제 고르기"}</span>
+        <motion.span className="chevron" animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          ⌄
+        </motion.span>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.ul
+            className="select-menu"
+            role="listbox"
+            aria-labelledby="example-label"
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }}
+            transition={{ duration: 0.16, ease }}
+          >
+            {examples.map((ex) => (
+              <li key={ex.id} role="option" aria-selected={ex.id === value}>
+                <button
+                  className={`select-option ${ex.id === value ? "selected" : ""}`}
+                  onClick={() => {
+                    setOpen(false);
+                    onChange(ex.id);
+                  }}
+                >
+                  {ex.label}
+                  {ex.id === value && <span className="check">✓</span>}
+                </button>
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
