@@ -72,7 +72,12 @@ def get_example(example_id: str):
     if path.parent != FIXTURES_DIR or not path.is_file():
         raise HTTPException(404, "예제를 찾을 수 없습니다.")
     raw = path.read_bytes()
-    return review(json.loads(raw), raw)
+    case = json.loads(raw)
+    # 예제 파일에 모델 파일 해시가 없으면 시연용 목업 해시를 채운다(업로드한 파일에는 채우지 않음).
+    model = case.get("input")
+    if isinstance(model, dict) and not model.get("artifact_sha256"):
+        model["artifact_sha256"] = hashlib.sha256(f"mock:{example_id}".encode()).hexdigest()
+    return review(case, raw)
 
 
 @app.post("/api/review")
