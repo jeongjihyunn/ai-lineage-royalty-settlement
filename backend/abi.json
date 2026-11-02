@@ -1,0 +1,10 @@
+[
+  {"type": "function", "name": "registerSettlementRule", "inputs": [{"name": "modelHash", "type": "bytes32"}, {"name": "recipients", "type": "address[]"}, {"name": "sharesBps", "type": "uint16[]"}, {"name": "escrowBps", "type": "uint16"}, {"name": "evidenceHash", "type": "bytes32"}], "outputs": [], "stateMutability": "nonpayable"},
+  {"type": "function", "name": "getSettlementRule", "inputs": [{"name": "modelHash", "type": "bytes32"}], "outputs": [{"name": "registered", "type": "bool"}, {"name": "escrowBps", "type": "uint16"}, {"name": "escrowBalance", "type": "uint256"}, {"name": "evidenceHash", "type": "bytes32"}, {"name": "recipients", "type": "address[]"}, {"name": "sharesBps", "type": "uint16[]"}], "stateMutability": "view"},
+  {"type": "function", "name": "reviewer", "inputs": [], "outputs": [{"name": "", "type": "address"}], "stateMutability": "view"},
+  {"type": "function", "name": "deposit", "inputs": [{"name": "modelHash", "type": "bytes32"}], "outputs": [], "stateMutability": "payable"},
+  {"type": "function", "name": "claim", "inputs": [{"name": "modelHash", "type": "bytes32"}], "outputs": [], "stateMutability": "nonpayable"},
+  {"type": "function", "name": "releaseEscrow", "inputs": [{"name": "modelHash", "type": "bytes32"}, {"name": "recipient", "type": "address"}, {"name": "amount", "type": "uint256"}, {"name": "releaseEvidenceHash", "type": "bytes32"}], "outputs": [], "stateMutability": "nonpayable"},
+  {"type": "function", "name": "operator", "inputs": [], "outputs": [{"name": "", "type": "address"}], "stateMutability": "view"},
+  {"type": "function", "name": "claimable", "inputs": [{"name": "", "type": "bytes32"}, {"name": "", "type": "address"}], "outputs": [{"name": "", "type": "uint256"}], "stateMutability": "view"}
+]
