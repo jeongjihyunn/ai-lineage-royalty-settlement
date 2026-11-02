@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, MotionConfig, animate, motion, useInView } from "framer-motion";
 
 const STATUS = {
-  APPROVED: { label: "정산 가능", tone: "green", desc: "모든 재료의 라이선스와 수령 지갑이 확인됐습니다." },
-  APPROVED_WITH_ESCROW: { label: "일부 보관 후 정산", tone: "orange", desc: "지갑을 찾지 못한 재료의 사용료는 따로 보관하고, 나머지만 나눕니다." },
-  HOLD: { label: "정산 보류", tone: "red", desc: "상업적 사용이 막힌 재료가 있어 사용료를 나눌 수 없습니다." },
-  REVIEW: { label: "사람 검토 필요", tone: "yellow", desc: "근거가 부족하거나 조건이 붙어 있어 담당자가 직접 확인해야 합니다." },
+  APPROVED: { label: "정산 가능", tone: "green", desc: "라이선스·지갑 모두 확인됨" },
+  APPROVED_WITH_ESCROW: { label: "일부 보관 후 정산", tone: "orange", desc: "지갑 못 찾은 재료의 사용료만 보관" },
+  HOLD: { label: "정산 보류", tone: "red", desc: "상업적 사용 불가 재료 있음" },
+  REVIEW: { label: "사람 검토 필요", tone: "yellow", desc: "근거 부족 · 담당자 확인 필요" },
 };
 const ROLES = {
   base_model: { label: "베이스 모델", color: "var(--purple)" },
@@ -22,16 +22,16 @@ const role = (r) => ROLES[r] || { label: r, color: "var(--mute)" };
 
 // 정책 엔진 문구를 처음 보는 사람도 알아듣게 바꿔 보여준다. 모르는 문구는 그대로 둔다.
 const PLAIN_MESSAGES = [
-  [/^수령 지갑 미확인/, () => "사용료를 받을 지갑을 찾지 못해, 이 재료에 줄 돈은 따로 보관합니다."],
-  [/^상업 이용 금지 라이선스\((.*)\)$/, (m) => `돈 받고 쓸 수 없는 라이선스입니다. (${m[1]})`],
-  [/^라이선스 불명\(값 없음\)$/, () => "라이선스가 적혀 있지 않습니다."],
-  [/^라이선스 불명\((.*)\)$/, (m) => `어떤 라이선스인지 알 수 없습니다. (${m[1]})`],
-  [/^근거 인용 없음$/, () => "모델 소개 글에서 근거 문장을 찾지 못했습니다."],
-  [/^재료 이름 없음$/, () => "재료 이름이 비어 있습니다."],
-  [/^재료 목록 없음$/, () => "모델 소개 글에서 재료를 찾지 못했습니다."],
-  [/^비율 규칙이 없는 역할\((.*)\)$/, (m) => `사용료 비율이 정해지지 않은 종류의 재료입니다. (${m[1]})`],
-  [/^선언 라이선스와 상위 라이선스 불일치$/, () => "이 모델이 밝힌 라이선스와 원본 모델의 라이선스가 다릅니다."],
-  [/^선언·상위 라이선스 불일치 여부 미확인$/, () => "이 모델이 밝힌 라이선스와 원본 모델의 라이선스가 같은지 확인하지 못했습니다."],
+  [/^수령 지갑 미확인/, () => "지갑 못 찾음 · 사용료 보관"],
+  [/^상업 이용 금지 라이선스\((.*)\)$/, (m) => `상업적 사용 불가 (${m[1]})`],
+  [/^라이선스 불명\(값 없음\)$/, () => "라이선스 표기 없음"],
+  [/^라이선스 불명\((.*)\)$/, (m) => `알 수 없는 라이선스 (${m[1]})`],
+  [/^근거 인용 없음$/, () => "근거 문장 없음"],
+  [/^재료 이름 없음$/, () => "재료 이름 없음"],
+  [/^재료 목록 없음$/, () => "재료 못 찾음"],
+  [/^비율 규칙이 없는 역할\((.*)\)$/, (m) => `비율 미정 재료 (${m[1]})`],
+  [/^선언 라이선스와 상위 라이선스 불일치$/, () => "원본 모델과 라이선스 다름"],
+  [/^선언·상위 라이선스 불일치 여부 미확인$/, () => "원본 모델과 라이선스 비교 못 함"],
 ];
 function plainMessage(message) {
   for (const [pattern, write] of PLAIN_MESSAGES) {
@@ -409,7 +409,7 @@ function Shares({ result }) {
     pct: r.share_bps / 100,
   }));
   if (result.escrow_bps) {
-    rows.push({ key: "escrow", label: "에스크로 · 컨트랙트에 보관", color: "var(--mute)", wallet: "—", pct: result.escrow_bps / 100, escrow: true });
+    rows.push({ key: "escrow", label: "따로 보관 · 지갑을 찾으면 지급", color: "var(--mute)", wallet: "—", pct: result.escrow_bps / 100, escrow: true });
   }
 
   // 화면에 보일 때 왼쪽부터 한 칸씩 차오른다.
@@ -489,7 +489,7 @@ function Approve({ register, approved, onApprove }) {
 
   return (
     <section className="block">
-      <h2>Reviewer 승인</h2>
+      <h2>사람 승인</h2>
       {!register.ok ? (
         <p className="muted">{register.reason}</p>
       ) : (
