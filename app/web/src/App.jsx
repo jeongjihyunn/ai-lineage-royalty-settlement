@@ -20,6 +20,33 @@ const ease = [0.22, 1, 0.36, 1];
 const shortWallet = (w) => (w && w.length > 12 ? `${w.slice(0, 6)}…${w.slice(-4)}` : w || "");
 const role = (r) => ROLES[r] || { label: r, color: "var(--mute)" };
 
+// 정책 엔진 문구를 처음 보는 사람도 알아듣게 바꿔 보여준다. 모르는 문구는 그대로 둔다.
+const PLAIN_MESSAGES = [
+  [/^수령 지갑 미확인/, () => "사용료를 받을 지갑을 찾지 못해, 이 재료에 줄 돈은 따로 보관합니다."],
+  [/^상업 이용 금지 라이선스\((.*)\)$/, (m) => `돈 받고 쓸 수 없는 라이선스입니다. (${m[1]})`],
+  [/^라이선스 불명\(값 없음\)$/, () => "라이선스가 적혀 있지 않습니다."],
+  [/^라이선스 불명\((.*)\)$/, (m) => `어떤 라이선스인지 알 수 없습니다. (${m[1]})`],
+  [/^근거 인용 없음$/, () => "모델 소개 글에서 근거 문장을 찾지 못했습니다."],
+  [/^재료 이름 없음$/, () => "재료 이름이 비어 있습니다."],
+  [/^재료 목록 없음$/, () => "모델 소개 글에서 재료를 찾지 못했습니다."],
+  [/^비율 규칙이 없는 역할\((.*)\)$/, (m) => `사용료 비율이 정해지지 않은 종류의 재료입니다. (${m[1]})`],
+  [/^선언 라이선스와 상위 라이선스 불일치$/, () => "이 모델이 밝힌 라이선스와 원본 모델의 라이선스가 다릅니다."],
+  [/^선언·상위 라이선스 불일치 여부 미확인$/, () => "이 모델이 밝힌 라이선스와 원본 모델의 라이선스가 같은지 확인하지 못했습니다."],
+];
+function plainMessage(message) {
+  for (const [pattern, write] of PLAIN_MESSAGES) {
+    const m = message.match(pattern);
+    if (m) return write(m);
+  }
+  return message;
+}
+function plainTarget(target) {
+  if (target === "license_analysis") return "라이선스 비교";
+  if (target === "선언 라이선스") return "이 모델이 밝힌 라이선스";
+  const [first, ...rest] = target.split(" ");
+  return ROLES[first] ? `${ROLES[first].label} · ${rest.join(" ")}` : target;
+}
+
 async function fetchJson(url, options) {
   const res = await fetch(url, options);
   const body = await res.json().catch(() => ({}));
@@ -113,7 +140,7 @@ export default function App() {
               <Lineage review={review} />
               {APPROVABLE.includes(status) && <Shares result={review.result} />}
               <Approve register={review.register} approved={approved} onApprove={() => setApproved(true)} />
-              {status !== "APPROVED" && <Reasons reasons={review.result.reasons} />}
+              {status !== "APPROVED" && <Reasons reasons={review.result.reasons} escrow={status === "APPROVED_WITH_ESCROW"} />}
             </motion.div>
           )}
         </AnimatePresence>
@@ -327,7 +354,7 @@ function Lineage({ review }) {
   const issues = {};
   for (const r of review.result.reasons || []) {
     if (r.message === OK_REASON) continue;
-    (issues[r.target] ||= []).push(r.message);
+    (issues[r.target] ||= []).push(plainMessage(r.message));
   }
 
   return (
@@ -355,7 +382,7 @@ function Lineage({ review }) {
                   {approvable && (wallet ? <span className="wallet">{shortWallet(wallet)}</span> : <span className="warn">지갑 미확인</span>)}
                 </span>
                 {problems && (
-                  <span className="issue" tabIndex={0} aria-label={problems.join(", ")}>
+                  <span className={`issue ${review.result.status === "APPROVED_WITH_ESCROW" ? "escrow" : ""}`} tabIndex={0} aria-label={problems.join(", ")}>
                     !
                     <span className="issue-tip" role="tooltip">
                       {problems.map((m) => <span key={m}>{m}</span>)}
@@ -488,22 +515,22 @@ function Approve({ register, approved, onApprove }) {
   );
 }
 
-function Reasons({ reasons }) {
+function Reasons({ reasons, escrow }) {
   return (
     <section className="block">
       <h2>판정 근거</h2>
       {reasons.map((r, i) => (
         <motion.article
           key={i}
-          className="reason glass"
+          className={`reason glass ${escrow ? "escrow" : ""}`}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 + i * 0.08, duration: 0.45, ease }}
         >
-          {r.target && <div className="reason-target">{r.target}</div>}
+          {r.target && <div className="reason-target">{plainTarget(r.target)}</div>}
           <div className="reason-msg">
             <span className="mark" aria-hidden="true">!</span>
-            {r.message}
+            {plainMessage(r.message)}
           </div>
           {(r.evidence || []).map((ev, j) => (
             <blockquote key={j}>
