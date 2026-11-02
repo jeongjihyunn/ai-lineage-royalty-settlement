@@ -103,14 +103,25 @@ h2 { font-size: 1.25rem; font-weight: 700; margin: 0 0 14px; letter-spacing: -0.
 .step.blocked .dot { border-color: var(--red); color: var(--red); background: #fef2f2; }
 
 /* 판정 */
-.tone-green { --tone: var(--green); --tone-bg: #f0fdf4; --tone-line: #bbf7d0; }
-.tone-cyan { --tone: var(--blue); --tone-bg: #eff6ff; --tone-line: #bfdbfe; }
-.tone-red { --tone: var(--red); --tone-bg: #fef2f2; --tone-line: #fecaca; }
-.tone-yellow { --tone: var(--amber); --tone-bg: #fffbeb; --tone-line: #fde68a; }
-.verdict { position: relative; margin-top: 36px; padding: 26px 28px; border-radius: 20px; border: 1px solid var(--tone-line); background: var(--tone-bg); overflow: hidden; }
-.verdict-model { color: var(--sub); font-size: 0.85rem; word-break: break-all; }
-.verdict-label { font-size: 2rem; font-weight: 800; margin: 6px 0; color: var(--tone); letter-spacing: -0.03em; }
+.tone-green { --tone: var(--green); --tone-bg: #f0fdf4; --tone-line: #86efac; }
+.tone-orange { --tone: #ea580c; --tone-bg: #fff7ed; --tone-line: #fdba74; }
+.tone-red { --tone: var(--red); --tone-bg: #fef2f2; --tone-line: #fca5a5; }
+.tone-yellow { --tone: var(--amber); --tone-bg: #fffbeb; --tone-line: #fcd34d; }
+.verdict { position: relative; overflow: hidden; margin-top: 36px; padding: 22px 24px; border-radius: 20px; border: 1.5px solid var(--tone-line); background: var(--tone-bg); }
+.verdict-model { color: var(--sub); font-size: 0.8rem; margin-top: 6px; word-break: break-all; }
+.verdict-label { font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; color: var(--tone); letter-spacing: -0.02em; }
 .verdict-desc { color: var(--ink); line-height: 1.6; }
+
+/* 테두리를 따라 도는 빛 (Magic UI Border Beam 아이디어) */
+@property --beam-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+.border-beam {
+  position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: conic-gradient(from var(--beam-angle), transparent 0 75%, var(--tone) 88%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: beam 5s linear infinite;
+}
+@keyframes beam { to { --beam-angle: 360deg; } }
 
 /* 계보 */
 .parts { display: flex; flex-direction: column; gap: 12px; }
@@ -187,5 +198,5 @@ blockquote small { display: block; color: var(--mute); font-size: 0.75rem; margi
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spinner, .primary::after { animation: none; }
+  .spinner, .border-beam, .primary::after { animation: none; }
 }

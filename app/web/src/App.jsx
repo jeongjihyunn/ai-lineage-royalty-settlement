@@ -3,7 +3,7 @@ import { AnimatePresence, MotionConfig, animate, motion, useInView } from "frame
 
 const STATUS = {
   APPROVED: { label: "정산 가능", tone: "green", desc: "모든 재료의 라이선스와 수령 지갑이 확인됐습니다." },
-  APPROVED_WITH_ESCROW: { label: "일부 보관 후 정산", tone: "cyan", desc: "지갑이 확인되지 않은 몫은 컨트랙트에 보관하고 나머지를 나눕니다." },
+  APPROVED_WITH_ESCROW: { label: "일부 보관 후 정산", tone: "orange", desc: "지갑을 찾지 못한 재료의 사용료는 따로 보관하고, 나머지만 나눕니다." },
   HOLD: { label: "정산 보류", tone: "red", desc: "상업적 사용이 막힌 재료가 있어 사용료를 나눌 수 없습니다." },
   REVIEW: { label: "사람 검토 필요", tone: "yellow", desc: "근거가 부족하거나 조건이 붙어 있어 담당자가 직접 확인해야 합니다." },
 };
@@ -12,7 +12,7 @@ const ROLES = {
   dataset: { label: "데이터셋", color: "var(--cyan)" },
   adapter: { label: "어댑터", color: "var(--yellow)" },
 };
-const STEPS = ["모델 카드 분석", "정책 판정", "Reviewer 승인", "블록체인 등록"];
+const STEPS = ["모델 정보 읽기", "정산 판정", "사람 승인", "블록체인 등록"];
 const APPROVABLE = ["APPROVED", "APPROVED_WITH_ESCROW"];
 const OK_REASON = "라이선스·근거·수령 지갑 확인됨";
 const ease = [0.22, 1, 0.36, 1];
@@ -337,9 +337,10 @@ function Verdict({ status, modelId }) {
       animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
       transition={{ duration: 0.6, ease }}
     >
-      <div className="verdict-model">{modelId}</div>
+      <span className="border-beam" aria-hidden="true" />
       <div className="verdict-label">{view.label}</div>
       <div className="verdict-desc">{view.desc}</div>
+      <div className="verdict-model">{modelId}</div>
     </motion.section>
   );
 }
