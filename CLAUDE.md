@@ -1,18 +1,18 @@
 # CLAUDE.md
 
 AI 모델 계보 기반 저작권 사용료 자동 정산 시스템 (블록체인특성화대학 PBL, 협력기업 엘에스웨어).
-평가 11/20, 경진대회 11/26, 기능 동결 11/14. 팀 3명 (A: AI 추출·정답표, B: 정책 엔진·web3.py, C: 컨트랙트·Streamlit·발표).
+평가 11/20, 경진대회 11/26, 기능 동결 11/14. 팀 3명 (A: AI 추출·정답표, B: 정책 엔진·web3.py, C: 컨트랙트·React 화면·발표).
 
 ## 범위 (넘어서지 않음)
 
 - HF 공개 모델 약 10개, Sepolia 테스트넷, 1단계 분배(모델 1개 → 권리자 목록 + 비율)
 - 모델을 학습·실행하지 않음. 공개 문서에서 직접 연결된 재료(베이스 모델·데이터셋·어댑터)만 확인
-- 하지 않음: ERC-20, EIP-712, FastAPI, 다단계 계보 정산, NFT 발행
+- 하지 않음: ERC-20, EIP-712, 다단계 계보 정산, NFT 발행
 - 기존 폴더 구조(`app`, `backend`, `contracts`, `docs`, `fixtures`)를 따름. 새 최상위 폴더를 임의로 만들지 않음
 
 ## 흐름
 
-수집(HF 카드 + 파일 SHA-256) → LLM 추출(LLM을 쓰는 유일한 단계) → 스키마·인용 검증 → 정책 엔진(상태 + 비율) → Reviewer 승인(Streamlit) → `registerSettlementRule` → Operator `deposit` → 권리자 `claim`
+수집(HF 카드 + 파일 SHA-256) → LLM 추출(LLM을 쓰는 유일한 단계) → 스키마·인용 검증 → 정책 엔진(상태 + 비율) → Reviewer 승인(React 화면 + FastAPI) → `registerSettlementRule` → Operator `deposit` → 권리자 `claim`
 
 ## 컨트랙트 (`contracts/`)
 

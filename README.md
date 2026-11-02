@@ -20,6 +20,28 @@ Hugging Face 모델 문서
 - 최종 정산 비율·지갑 주소·승인은 사람이 결정
 - Sepolia 테스트 ETH만 사용
 
+## 실행
+
+터미널 두 개가 필요합니다.
+
+API 서버 (저장소 맨 위 폴더에서):
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r app/api/requirements.txt
+.venv/bin/uvicorn app.api.server:app --port 8000
+```
+
+화면:
+
+```bash
+cd app/web
+npm install
+npm run dev
+```
+
+브라우저에서 http://localhost:5173 을 엽니다. 처음 한 번만 설치하면 되고, 다음부터는 `uvicorn`과 `npm run dev`만 실행합니다.
+
 ## 배포 정보 (Sepolia)
 
 | 항목 | 값 |
