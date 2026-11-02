@@ -75,9 +75,29 @@ class EvaluateTest(unittest.TestCase):
     def test_all_mapped_is_approved(self):
         result = pe.evaluate(_case(self.components), self.full_map)
         self.assertEqual(result["status"], pe.APPROVED)
-        self.assertEqual([r["share_bps"] for r in result["recipients"]], [4000, 3000, 3000])
+        # base(A)와 adapter(A)가 같은 지갑이라 합산: A 7000, B 3000
+        self.assertEqual([r["share_bps"] for r in result["recipients"]], [7000, 3000])
         self.assertEqual(result["escrow_bps"], 0)
         self.assertEqual(result["total_bps"], 10000)
+
+    def test_same_wallet_is_merged_and_registrable(self):
+        result = pe.evaluate(_case(self.components), self.full_map)
+        wallets = [r["wallet"] for r in result["recipients"]]
+        self.assertEqual(len(wallets), len(set(w.lower() for w in wallets)))
+        args = pe.to_contract_args(result, "ab" * 32, "0x" + "cd" * 32)
+        self.assertEqual(args["sharesBps"], [7000, 3000])
+
+    def test_conditional_license_goes_to_review(self):
+        self.components[0]["license_id"] = "llama3.2"
+        result = pe.evaluate(_case(self.components), self.full_map)
+        self.assertEqual(result["status"], pe.REVIEW)
+        result = pe.evaluate(_case(self.components, upstream="llama3.2"), self.full_map)
+        self.assertEqual(result["status"], pe.REVIEW)
+
+    def test_prohibited_wins_over_conditional(self):
+        self.components[0]["license_id"] = "llama3.2"
+        self.components[2]["license_id"] = "cc-by-nc-4.0"
+        self.assertEqual(pe.evaluate(_case(self.components), self.full_map)["status"], pe.HOLD)
 
     def test_unmapped_goes_to_escrow(self):
         wallet_map = {"org/base": HOLDER_A, "org/adapter": HOLDER_A}
