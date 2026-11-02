@@ -84,7 +84,7 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <main>
         <motion.header initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }}>
-          <h1>계보 정산 검토</h1>
+          <h1>AI 모델 사용료 정산</h1>
           <p>AI 모델을 만든 재료의 권리자에게 사용료를 나눠도 되는지 판정하고, 승인하면 분배 규칙을 블록체인에 등록합니다.</p>
         </motion.header>
 
