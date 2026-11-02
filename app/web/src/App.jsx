@@ -501,7 +501,10 @@ function Reasons({ reasons }) {
           transition={{ delay: 0.3 + i * 0.08, duration: 0.45, ease }}
         >
           {r.target && <div className="reason-target">{r.target}</div>}
-          <div className="reason-msg">{r.message}</div>
+          <div className="reason-msg">
+            <span className="mark" aria-hidden="true">!</span>
+            {r.message}
+          </div>
           {(r.evidence || []).map((ev, j) => (
             <blockquote key={j}>
               “{ev.evidence_quote}”

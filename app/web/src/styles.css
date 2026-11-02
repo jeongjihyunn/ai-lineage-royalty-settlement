@@ -171,9 +171,10 @@ h2 { font-size: 1.25rem; font-weight: 700; margin: 0 0 14px; letter-spacing: -0.
 .notice { margin: 0; color: var(--amber); font-weight: 600; }
 
 /* 근거 */
-.reason { padding: 16px 18px; margin-bottom: 12px; }
+.reason { padding: 16px 18px; margin-bottom: 12px; border: 2px solid #f87171; background: #fef2f2; }
 .reason-target { color: var(--mute); font-size: 0.78rem; margin-bottom: 4px; }
-.reason-msg { font-weight: 600; }
+.reason-msg { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.mark { flex: none; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--red); color: white; font-size: 0.7rem; font-weight: 800; }
 blockquote { margin: 10px 0 0; padding: 2px 0 2px 12px; border-left: 3px solid var(--line); color: var(--sub); font-size: 0.9rem; line-height: 1.5; }
 blockquote small { display: block; color: var(--mute); font-size: 0.75rem; margin-top: 2px; word-break: break-all; }
 
