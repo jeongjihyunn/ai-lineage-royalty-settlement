@@ -14,6 +14,7 @@ const ROLES = {
 };
 const STEPS = ["모델 정보 읽기", "정산 판정", "사람 승인", "블록체인 등록"];
 const APPROVABLE = ["APPROVED", "APPROVED_WITH_ESCROW"];
+const ALREADY = "ALREADY_REGISTERED";
 const OK_REASON = "라이선스·근거·수령 지갑 확인됨";
 const ease = [0.22, 1, 0.36, 1];
 
@@ -56,11 +57,11 @@ async function fetchJson(url, options) {
 
 export default function App() {
   const [examples, setExamples] = useState([]);
-  const [source, setSource] = useState(null); // { kind: "example", id } | { kind: "file", name }
+  const [source, setSource] = useState(null); // { kind: "example", id } | { kind: "file", name, text }
   const [review, setReview] = useState(null);
   const [error, setError] = useState(null);
   const [upload, setUpload] = useState(null); // { name, state: "loading" | "done" | "error" }
-  const [approved, setApproved] = useState(false);
+  const [registration, setRegistration] = useState(null);
 
   useEffect(() => {
     fetchJson("/api/examples")
@@ -73,7 +74,7 @@ export default function App() {
 
   async function load(promise, nextSource) {
     setError(null);
-    setApproved(false);
+    setRegistration(null);
     try {
       const data = await promise;
       setReview(data);
@@ -96,16 +97,17 @@ export default function App() {
     const text = await file.text();
     const ok = await load(
       fetchJson("/api/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: text }),
-      { kind: "file", name: file.name },
+      { kind: "file", name: file.name, text },
     );
     setUpload({ name: file.name, size: file.size, state: ok ? "done" : "error" });
   }
 
   const key = source ? `${source.kind}:${source.id || source.name}` : "none";
   const status = review?.result.status;
+  const registered = registration?.ok || registration?.error_code === ALREADY;
   const stepStates = !review
     ? ["", "", "", ""]
-    : ["done", "done", review.register.ok ? (approved ? "done" : "now") : "blocked", approved ? "now" : ""];
+    : ["done", "done", review.register.ok ? (registered ? "done" : "now") : "blocked", registered ? "done" : ""];
 
   return (
     <MotionConfig reducedMotion="user">
@@ -139,7 +141,7 @@ export default function App() {
               <Verdict status={status} modelId={review.model.id} />
               <Lineage review={review} />
               {APPROVABLE.includes(status) && <Shares result={review.result} />}
-              <Approve register={review.register} approved={approved} onApprove={() => setApproved(true)} />
+              <Approve register={review.register} source={source} registration={registration} onResult={setRegistration} />
               {status !== "APPROVED" && <Reasons reasons={review.result.reasons} escrow={status === "APPROVED_WITH_ESCROW"} />}
             </motion.div>
           )}
@@ -476,16 +478,26 @@ function Ticker({ value, start = true }) {
   return <><span ref={ref}>0</span>%</>;
 }
 
-function Approve({ register, approved, onApprove }) {
+function Approve({ register, source, registration, onResult }) {
   const [pending, setPending] = useState(false);
 
-  function click() {
+  async function click() {
     setPending(true);
-    setTimeout(() => {
+    onResult(null);
+    try {
+      const request = source.kind === "example"
+        ? fetchJson(`/api/examples/${source.id}/register`, { method: "POST" })
+        : fetchJson("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: source.text });
+      onResult(await request);
+    } catch (e) {
+      onResult({ ok: false, error_message: e.message });
+    } finally {
       setPending(false);
-      onApprove();
-    }, 700);
+    }
   }
+
+  const already = registration?.error_code === ALREADY;
+  const done = registration?.ok || already;
 
   return (
     <section className="block">
@@ -498,16 +510,27 @@ function Approve({ register, approved, onApprove }) {
             className="primary"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.97 }}
-            disabled={pending || approved}
+            disabled={pending || done}
             onClick={click}
           >
-            {pending ? <span className="spinner" /> : approved ? "승인 완료" : "승인하고 블록체인에 등록"}
+            {pending ? <span className="spinner" /> : already ? "이미 등록됨" : done ? "등록 완료" : "승인하고 블록체인에 등록"}
           </motion.button>
           <AnimatePresence>
-            {approved && (
-              <motion.p className="notice" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}>
-                블록체인 등록 함수 연결 전입니다.
-              </motion.p>
+            {registration && (
+              <motion.div className="result" aria-live="polite" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}>
+                {!already && registration.error_message && <p className="notice">{registration.error_message}</p>}
+                {already && registration.evidence_changed && <p className="notice">등록 당시와 근거 파일이 다름</p>}
+                {already && registration.contract_address && (
+                  <a href={`https://sepolia.etherscan.io/address/${registration.contract_address}`} target="_blank" rel="noreferrer">
+                    Etherscan에서 컨트랙트 보기
+                  </a>
+                )}
+                {registration.etherscan_url && (
+                  <a href={registration.etherscan_url} target="_blank" rel="noreferrer">
+                    Etherscan에서 보기 ({shortWallet(registration.tx_hash)})
+                  </a>
+                )}
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
