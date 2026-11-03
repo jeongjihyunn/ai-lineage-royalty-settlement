@@ -56,11 +56,11 @@ async function fetchJson(url, options) {
 
 export default function App() {
   const [examples, setExamples] = useState([]);
-  const [source, setSource] = useState(null); // { kind: "example", id } | { kind: "file", name }
+  const [source, setSource] = useState(null); // { kind: "example", id } | { kind: "file", name, text }
   const [review, setReview] = useState(null);
   const [error, setError] = useState(null);
   const [upload, setUpload] = useState(null); // { name, state: "loading" | "done" | "error" }
-  const [approved, setApproved] = useState(false);
+  const [registration, setRegistration] = useState(null);
 
   useEffect(() => {
     fetchJson("/api/examples")
@@ -73,7 +73,7 @@ export default function App() {
 
   async function load(promise, nextSource) {
     setError(null);
-    setApproved(false);
+    setRegistration(null);
     try {
       const data = await promise;
       setReview(data);
@@ -96,16 +96,17 @@ export default function App() {
     const text = await file.text();
     const ok = await load(
       fetchJson("/api/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: text }),
-      { kind: "file", name: file.name },
+      { kind: "file", name: file.name, text },
     );
     setUpload({ name: file.name, size: file.size, state: ok ? "done" : "error" });
   }
 
   const key = source ? `${source.kind}:${source.id || source.name}` : "none";
   const status = review?.result.status;
+  const registered = registration?.ok;
   const stepStates = !review
     ? ["", "", "", ""]
-    : ["done", "done", review.register.ok ? (approved ? "done" : "now") : "blocked", approved ? "now" : ""];
+    : ["done", "done", review.register.ok ? (registered ? "done" : "now") : "blocked", registered ? "done" : ""];
 
   return (
     <MotionConfig reducedMotion="user">
@@ -139,7 +140,7 @@ export default function App() {
               <Verdict status={status} modelId={review.model.id} />
               <Lineage review={review} />
               {APPROVABLE.includes(status) && <Shares result={review.result} />}
-              <Approve register={review.register} approved={approved} onApprove={() => setApproved(true)} />
+              <Approve register={review.register} source={source} registration={registration} onResult={setRegistration} />
               {status !== "APPROVED" && <Reasons reasons={review.result.reasons} escrow={status === "APPROVED_WITH_ESCROW"} />}
             </motion.div>
           )}
@@ -476,16 +477,25 @@ function Ticker({ value, start = true }) {
   return <><span ref={ref}>0</span>%</>;
 }
 
-function Approve({ register, approved, onApprove }) {
+function Approve({ register, source, registration, onResult }) {
   const [pending, setPending] = useState(false);
 
-  function click() {
+  async function click() {
     setPending(true);
-    setTimeout(() => {
+    onResult(null);
+    try {
+      const request = source.kind === "example"
+        ? fetchJson(`/api/examples/${source.id}/register`, { method: "POST" })
+        : fetchJson("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: source.text });
+      onResult(await request);
+    } catch (e) {
+      onResult({ ok: false, error_message: e.message });
+    } finally {
       setPending(false);
-      onApprove();
-    }, 700);
+    }
   }
+
+  const done = registration?.ok;
 
   return (
     <section className="block">
@@ -498,16 +508,21 @@ function Approve({ register, approved, onApprove }) {
             className="primary"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.97 }}
-            disabled={pending || approved}
+            disabled={pending || done}
             onClick={click}
           >
-            {pending ? <span className="spinner" /> : approved ? "승인 완료" : "승인하고 블록체인에 등록"}
+            {pending ? <span className="spinner" /> : done ? "등록 완료" : "승인하고 블록체인에 등록"}
           </motion.button>
           <AnimatePresence>
-            {approved && (
-              <motion.p className="notice" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}>
-                블록체인 등록 함수 연결 전입니다.
-              </motion.p>
+            {registration && (
+              <motion.div className="result" aria-live="polite" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}>
+                {registration.error_message && <p className="notice">{registration.error_message}</p>}
+                {registration.etherscan_url && (
+                  <a href={registration.etherscan_url} target="_blank" rel="noreferrer">
+                    Etherscan에서 보기 ({shortWallet(registration.tx_hash)})
+                  </a>
+                )}
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
