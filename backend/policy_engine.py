@@ -164,6 +164,8 @@ def _decide_status(case, wallet_map, config):
             hold_reasons.append(_reason(f"상업 이용 금지 라이선스({license_id})", target, evidence))
         elif category == UNKNOWN:
             review_reasons.append(_reason(f"라이선스 불명({license_id or '값 없음'})", target, evidence))
+        elif category == CONDITIONAL:
+            review_reasons.append(_reason(f"조건부 라이선스({license_id}), 사람 확인 필요", target, evidence))
         if not evidence:
             review_reasons.append(_reason("근거 인용 없음", target))
         if not isinstance(name, str) or not name.strip():
@@ -184,6 +186,8 @@ def _decide_status(case, wallet_map, config):
             hold_reasons.append(_reason(f"상업 이용 금지 라이선스({value})", title, evidence))
         elif category == UNKNOWN:
             review_reasons.append(_reason(f"라이선스 불명({value or '값 없음'})", title, evidence))
+        elif category == CONDITIONAL:
+            review_reasons.append(_reason(f"조건부 라이선스({value}), 사람 확인 필요", title, evidence))
 
     mismatch = analysis.get("license_metadata_mismatch")
     if mismatch is True:
@@ -231,7 +235,7 @@ def _compute_shares(components, wallet_map, config):
             else:
                 escrow_bps += share
 
-    return recipients, escrow_bps
+    return _merge_same_wallet(recipients), escrow_bps
 
 
 def evaluate(case: dict, wallet_map: dict, config: dict = None) -> dict:
@@ -260,6 +264,20 @@ def _normalize_bytes32(value, label):
     if int(value, 16) == 0:
         raise ValueError(f"{label}이 0임")
     return value
+
+
+def _merge_same_wallet(recipients):
+    """같은 지갑이 여러 재료의 수령자면 비율을 합산해 한 명으로 만든다(컨트랙트는 중복 수령자를 거부함)."""
+    merged = {}
+    for entry in recipients:
+        key = entry["wallet"].lower()
+        if key in merged:
+            merged[key]["share_bps"] += entry["share_bps"]
+            merged[key]["role"] += f"+{entry['role']}"
+            merged[key]["name"] += f" + {entry['name']}"
+        else:
+            merged[key] = dict(entry)
+    return list(merged.values())
 
 
 def to_contract_args(result: dict, model_hash: str, evidence_hash: str) -> dict:
