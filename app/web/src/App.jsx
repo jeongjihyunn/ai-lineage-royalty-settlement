@@ -14,6 +14,7 @@ const ROLES = {
 };
 const STEPS = ["모델 정보 읽기", "정산 판정", "사람 승인", "블록체인 등록"];
 const APPROVABLE = ["APPROVED", "APPROVED_WITH_ESCROW"];
+const ALREADY = "ALREADY_REGISTERED";
 const OK_REASON = "라이선스·근거·수령 지갑 확인됨";
 const ease = [0.22, 1, 0.36, 1];
 
@@ -103,7 +104,7 @@ export default function App() {
 
   const key = source ? `${source.kind}:${source.id || source.name}` : "none";
   const status = review?.result.status;
-  const registered = registration?.ok;
+  const registered = registration?.ok || registration?.error_code === ALREADY;
   const stepStates = !review
     ? ["", "", "", ""]
     : ["done", "done", review.register.ok ? (registered ? "done" : "now") : "blocked", registered ? "done" : ""];
@@ -495,7 +496,8 @@ function Approve({ register, source, registration, onResult }) {
     }
   }
 
-  const done = registration?.ok;
+  const already = registration?.error_code === ALREADY;
+  const done = registration?.ok || already;
 
   return (
     <section className="block">
@@ -511,12 +513,18 @@ function Approve({ register, source, registration, onResult }) {
             disabled={pending || done}
             onClick={click}
           >
-            {pending ? <span className="spinner" /> : done ? "등록 완료" : "승인하고 블록체인에 등록"}
+            {pending ? <span className="spinner" /> : already ? "이미 등록됨" : done ? "등록 완료" : "승인하고 블록체인에 등록"}
           </motion.button>
           <AnimatePresence>
             {registration && (
               <motion.div className="result" aria-live="polite" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}>
-                {registration.error_message && <p className="notice">{registration.error_message}</p>}
+                {!already && registration.error_message && <p className="notice">{registration.error_message}</p>}
+                {already && registration.evidence_changed && <p className="notice">등록 당시와 근거 파일이 다름</p>}
+                {already && registration.contract_address && (
+                  <a href={`https://sepolia.etherscan.io/address/${registration.contract_address}`} target="_blank" rel="noreferrer">
+                    Etherscan에서 컨트랙트 보기
+                  </a>
+                )}
                 {registration.etherscan_url && (
                   <a href={registration.etherscan_url} target="_blank" rel="noreferrer">
                     Etherscan에서 보기 ({shortWallet(registration.tx_hash)})

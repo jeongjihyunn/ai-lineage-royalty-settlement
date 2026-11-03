@@ -93,7 +93,9 @@ def register(raw):
         f.write(raw)
         f.flush()
         result = wr.register_settlement_rule(f.name)
-    return {k: result[k] for k in ("ok", "tx_hash", "etherscan_url", "error_code", "error_message")}
+    data = {k: result[k] for k in ("ok", "tx_hash", "etherscan_url", "error_code", "error_message", "contract_address")}
+    data["evidence_changed"] = bool(result["onchain_evidence_hash"]) and result["onchain_evidence_hash"] != result["evidence_hash"]
+    return data
 
 
 @app.get("/api/examples/{example_id}")
