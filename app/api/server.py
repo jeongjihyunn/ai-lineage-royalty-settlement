@@ -2,6 +2,7 @@
 
 - 정책 판정은 backend/policy_engine.py의 evaluate를 그대로 쓴다.
 - 등록은 backend/web3_register.py의 register_settlement_rule을 그대로 쓴다.
+- 입금·수령은 backend/web3_actions.py의 deposit·claim을 그대로 쓴다.
 
 실행: uvicorn app.api.server:app --port 8000
 """
@@ -10,6 +11,7 @@ import hashlib
 import json
 import sys
 import tempfile
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -19,7 +21,9 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "backend"))
 
 import policy_engine as pe  # noqa: E402
+import web3_actions as wa  # noqa: E402
 import web3_register as wr  # noqa: E402
+from web3_register import RegisterError  # noqa: E402
 
 FIXTURES_DIR = ROOT / "fixtures"
 EXAMPLES = {
@@ -57,7 +61,7 @@ def review(case, raw):
             register["reason"] = f"등록 인자 생성 실패: {e}"
 
     return {
-        "model": {"id": model.get("model_id"), "url": model.get("model_url")},
+        "model": {"id": model.get("model_id"), "url": model.get("model_url"), "hash": model.get("artifact_sha256")},
         "components": [
             {"role": c.get("role"), "name": c.get("name"), "license": c.get("license_id")}
             for c in pe._as_list(case.get("components"))
@@ -98,6 +102,59 @@ def register(raw):
     return data
 
 
+def eth(wei):
+    return format((Decimal(wei) / 10**18).normalize(), "f")
+
+
+def to_wei(amount_eth):
+    """ETH 문자열을 wei로 바꾼다. 숫자가 아니거나 wei로 나눠떨어지지 않으면 None."""
+    try:
+        wei = Decimal(amount_eth) * 10**18
+    except InvalidOperation:
+        return None
+    return int(wei) if wei.is_finite() and wei == wei.to_integral_value() else None
+
+
+def tx_result(result):
+    return {k: result.get(k) for k in ("ok", "status", "tx_hash", "etherscan_url", "error_code", "error_message")}
+
+
+def deposit(case, amount_eth):
+    """승인된 모델만 입금한다. 승인되지 않았거나 해시가 없으면 네트워크에 접속하지 않고 거부한다."""
+    if not isinstance(case, dict):
+        raise HTTPException(400, "case JSON은 객체여야 합니다.")
+    status = pe.evaluate(case, pe.load_wallet_map())["status"]
+    model_hash = pe._as_dict(case.get("input")).get("artifact_sha256")
+    if status not in (pe.APPROVED, pe.APPROVED_WITH_ESCROW) or not model_hash:
+        return tx_result({"ok": False, "status": wa.REJECTED, "error_code": "NOT_APPROVED", "error_message": "승인되지 않은 모델입니다."})
+    wei = to_wei(amount_eth)
+    if wei is None:
+        return tx_result({"ok": False, "error_code": "INVALID_AMOUNT", "error_message": "입금액 형식이 올바르지 않습니다."})
+    return tx_result(wa.deposit(model_hash, wei, send=True))
+
+
+def settlement(model_hash):
+    """체인에 기록된 분배 대상과 각자 받을 금액을 읽는다. 전송은 하지 않는다."""
+    try:
+        model_hash = wa._model_hash(model_hash)
+        key = bytes.fromhex(model_hash[2:])
+        settings = wr._read_settings(None, need_key=False)
+        contract, _ = wr._open_contract(wr._connect(settings["SEPOLIA_RPC_URL"]), settings["CONTRACT_ADDRESS"])
+        rule = wa._get_rule(contract, model_hash)
+        holders = {wallet.lower(): name for name, wallet in wa.load_holder_addresses().items()}
+        recipients = [
+            {
+                "wallet": wallet,
+                "holder": holders.get(wallet.lower()),
+                "claimable_eth": eth(wa._call(contract.functions.claimable(key, wallet), "수령 가능 금액")),
+            }
+            for wallet in rule["recipients"]
+        ]
+    except RegisterError as e:
+        return {"registered": False if e.code == "MODEL_HASH_NOT_REGISTERED" else None, "error_message": e.message}
+    return {"registered": True, "escrow_eth": eth(rule["escrow_balance"]), "recipients": recipients}
+
+
 @app.get("/api/examples/{example_id}")
 def get_example(example_id: str):
     case, raw = load_example(example_id)
@@ -110,16 +167,40 @@ def register_example(example_id: str):
     return register(raw)
 
 
+@app.post("/api/examples/{example_id}/deposit")
+def deposit_example(example_id: str, amount_eth: str):
+    case, _ = load_example(example_id)
+    return deposit(case, amount_eth)
+
+
+def parse_case(raw):
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise HTTPException(400, f"JSON을 읽을 수 없음: {e}")
+
+
 @app.post("/api/review")
 async def post_review(request: Request):
     raw = await request.body()
-    try:
-        case = json.loads(raw)
-    except json.JSONDecodeError as e:
-        raise HTTPException(400, f"JSON을 읽을 수 없음: {e}")
-    return review(case, raw)
+    return review(parse_case(raw), raw)
 
 
 @app.post("/api/register")
 async def register_upload(request: Request):
     return await run_in_threadpool(register, await request.body())
+
+
+@app.post("/api/deposit")
+async def deposit_upload(request: Request, amount_eth: str):
+    return await run_in_threadpool(deposit, parse_case(await request.body()), amount_eth)
+
+
+@app.get("/api/settlement/{model_hash}")
+def get_settlement(model_hash: str):
+    return settlement(model_hash)
+
+
+@app.post("/api/settlement/{model_hash}/claim/{holder}")
+def post_claim(model_hash: str, holder: str):
+    return tx_result(wa.claim(model_hash, holder, send=True))
