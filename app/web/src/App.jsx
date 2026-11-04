@@ -142,6 +142,7 @@ export default function App() {
               <Lineage review={review} />
               {APPROVABLE.includes(status) && <Shares result={review.result} />}
               <Approve register={review.register} source={source} registration={registration} onResult={setRegistration} />
+              <Payment review={review} source={source} registration={registration} />
               {status !== "APPROVED" && <Reasons reasons={review.result.reasons} escrow={status === "APPROVED_WITH_ESCROW"} />}
             </motion.div>
           )}
@@ -536,6 +537,130 @@ function Approve({ register, source, registration, onResult }) {
         </div>
       )}
     </section>
+  );
+}
+
+const DEPOSIT_REFUSED = {
+  NOT_APPROVED: "입금 거부 · 승인되지 않은 모델",
+  MODEL_HASH_NOT_REGISTERED: "입금 거부 · 등록되지 않은 모델",
+};
+
+function TxResult({ result, done }) {
+  if (!result) return null;
+  return (
+    <div className="result" aria-live="polite">
+      {result.ok
+        ? <p className="tx-done">{done}</p>
+        : <p className="notice">{DEPOSIT_REFUSED[result.error_code] || result.error_message}</p>}
+      {result.etherscan_url && (
+        <a href={result.etherscan_url} target="_blank" rel="noreferrer">
+          Etherscan에서 보기 ({shortWallet(result.tx_hash)})
+        </a>
+      )}
+    </div>
+  );
+}
+
+function Payment({ review, source, registration }) {
+  const hash = review.model.hash;
+  const [amount, setAmount] = useState("0.001");
+  const [pending, setPending] = useState(null); // "deposit" | 권리자 지갑 주소
+  const [deposited, setDeposited] = useState(null);
+  const [claims, setClaims] = useState({});
+  const [settlement, setSettlement] = useState(null);
+
+  const refresh = () => fetchJson(`/api/settlement/${hash}`).then(setSettlement).catch(() => setSettlement(null));
+
+  useEffect(() => {
+    if (hash) refresh();
+  }, [hash, registration]);
+
+  async function send() {
+    setPending("deposit");
+    setDeposited(null);
+    const query = `amount_eth=${encodeURIComponent(amount)}`;
+    try {
+      const request = source.kind === "example"
+        ? fetchJson(`/api/examples/${source.id}/deposit?${query}`, { method: "POST" })
+        : fetchJson(`/api/deposit?${query}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: source.text });
+      setDeposited(await request);
+      if (hash) await refresh();
+    } catch (e) {
+      setDeposited({ ok: false, error_message: e.message });
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function claim(row) {
+    setPending(row.wallet);
+    setClaims((c) => ({ ...c, [row.wallet]: null }));
+    try {
+      const result = await fetchJson(`/api/settlement/${hash}/claim/${row.holder}`, { method: "POST" });
+      setClaims((c) => ({ ...c, [row.wallet]: result }));
+      await refresh();
+    } catch (e) {
+      setClaims((c) => ({ ...c, [row.wallet]: { ok: false, error_message: e.message } }));
+    } finally {
+      setPending(null);
+    }
+  }
+
+  const names = Object.fromEntries(review.result.recipients.map((r) => [r.wallet?.toLowerCase(), r]));
+
+  return (
+    <>
+      <section className="block">
+        <h2>사용료 입금</h2>
+        <div className="approve">
+          <label className="amount">
+            <span className="sr-only">입금액</span>
+            <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <span>ETH</span>
+          </label>
+          <button className="primary deposit" disabled={!!pending || !amount} onClick={send}>
+            {pending === "deposit" ? <span className="spinner" /> : "입금"}
+          </button>
+          <TxResult result={deposited} done="입금 완료" />
+        </div>
+      </section>
+
+      {settlement?.registered && (
+        <section className="block">
+          <h2>권리자 수령</h2>
+          <ul className="claims">
+            {settlement.recipients.map((row) => {
+              const info = names[row.wallet.toLowerCase()];
+              return (
+                <li key={row.wallet}>
+                  <i style={{ background: role(info?.role).color }} />
+                  <span className="legend-label">{info?.name || row.holder}</span>
+                  <span className="wallet">{shortWallet(row.wallet)}</span>
+                  <strong>{row.claimable_eth} ETH</strong>
+                  <button
+                    className="claim"
+                    disabled={!!pending || !row.holder || row.claimable_eth === "0"}
+                    onClick={() => claim(row)}
+                  >
+                    {pending === row.wallet ? <span className="spinner dark" /> : "받기"}
+                  </button>
+                  {claims[row.wallet] && <div className="claim-result"><TxResult result={claims[row.wallet]} done="수령 완료" /></div>}
+                </li>
+              );
+            })}
+            {settlement.escrow_eth !== "0" && (
+              <li>
+                <i style={{ background: "var(--mute)" }} />
+                <span className="legend-label">따로 보관</span>
+                <span className="wallet">—</span>
+                <strong>{settlement.escrow_eth} ETH</strong>
+                <span />
+              </li>
+            )}
+          </ul>
+        </section>
+      )}
+    </>
   );
 }
 
