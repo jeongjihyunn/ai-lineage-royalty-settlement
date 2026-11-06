@@ -20,6 +20,28 @@ Hugging Face 모델 문서
 - 최종 정산 비율·지갑 주소·승인은 사람이 결정
 - Sepolia 테스트 ETH만 사용
 
+## 환경 변수
+
+실행 전 저장소 맨 위에 `.env` 파일을 만들어야 합니다. `.env.example`을 복사해서 값을 채웁니다.
+
+```bash
+cp .env.example .env
+```
+
+| 변수 | 설명 |
+| --- | --- |
+| `SEPOLIA_RPC_URL` | Sepolia 테스트넷 RPC 주소 (예: Infura·Alchemy에서 발급) |
+| `CONTRACT_ADDRESS` | 배포된 컨트랙트 주소 (아래 배포 정보 참고) |
+| `REVIEWER_PRIVATE_KEY` | 정산 규칙 등록·에스크로 해제용 지갑 키 |
+| `OPERATOR_PRIVATE_KEY` | 입금용 지갑 키 |
+| `HOLDER_A_PRIVATE_KEY` | 권리자 A(claim)용 지갑 키 |
+| `HOLDER_B_PRIVATE_KEY` | 권리자 B(claim)용 지갑 키 |
+| `HOLDER_C_PRIVATE_KEY` | 권리자 C(claim)용 지갑 키 |
+
+- `.env`는 개인키를 담으므로 저장소에 올리지 않습니다 (`.gitignore`에 포함).
+- 모든 키는 Sepolia 테스트용 개발 지갑입니다. 실제 자산이 있는 지갑 키는 쓰지 않습니다.
+- Reviewer와 Operator는 서로 다른 지갑이어야 합니다.
+
 ## 실행
 
 터미널 두 개가 필요합니다.
@@ -47,10 +69,10 @@ npm run dev
 | 항목 | 값 |
 | --- | --- |
 | 컨트랙트 | `LineageRoyaltySettlement` (`contracts/LineageRoyaltySettlement.sol`) |
-| 컨트랙트 주소 | [`0x651610df7DCA42d1273e159DdDFf1F22679f9fFA`](https://sepolia.etherscan.io/address/0x651610df7DCA42d1273e159DdDFf1F22679f9fFA) |
+| 컨트랙트 주소 | [`0x72b9C2BA2D0CC7c3f056EEA8E5B27A6E0069a432`](https://sepolia.etherscan.io/address/0x72b9C2BA2D0CC7c3f056EEA8E5B27A6E0069a432) |
 | Reviewer | `0x9860b505569783A3f9b36a9cB1A3835745efE8f4` |
 | Operator | `0x40F57730A509fE02c451cABE1A916258c5dA2661` |
-| 배포 트랜잭션 | [`0xc7565cf9...ac86bc`](https://sepolia.etherscan.io/tx/0xc7565cf99f20370c6b2013261487536503a581b0823c7d3ead25b9e442ac86bc) |
+| 배포 트랜잭션 | [`0x6f1c9bb0...b0c5f`](https://sepolia.etherscan.io/tx/0x6f1c9bb0c285e7bed5a26e99340386e6b9817a615ed88112fb2dcab92b0b0c5f) |
 
 - 주소는 모두 공개 주소이며 개인키는 `.env`에만 두고 저장소에 올리지 않음
 - Reviewer와 Operator는 생성자에서 고정되며 같은 지갑일 수 없음
