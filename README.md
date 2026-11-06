@@ -20,6 +20,28 @@ Hugging Face 모델 문서
 - 최종 정산 비율·지갑 주소·승인은 사람이 결정
 - Sepolia 테스트 ETH만 사용
 
+## 환경 변수
+
+실행 전 저장소 맨 위에 `.env` 파일을 만들어야 합니다. `.env.example`을 복사해서 값을 채웁니다.
+
+```bash
+cp .env.example .env
+```
+
+| 변수 | 설명 |
+| --- | --- |
+| `SEPOLIA_RPC_URL` | Sepolia 테스트넷 RPC 주소 (예: Infura·Alchemy에서 발급) |
+| `CONTRACT_ADDRESS` | 배포된 컨트랙트 주소 (아래 배포 정보 참고) |
+| `REVIEWER_PRIVATE_KEY` | 정산 규칙 등록·에스크로 해제용 지갑 키 |
+| `OPERATOR_PRIVATE_KEY` | 입금용 지갑 키 |
+| `HOLDER_A_PRIVATE_KEY` | 권리자 A(claim)용 지갑 키 |
+| `HOLDER_B_PRIVATE_KEY` | 권리자 B(claim)용 지갑 키 |
+| `HOLDER_C_PRIVATE_KEY` | 권리자 C(claim)용 지갑 키 |
+
+- `.env`는 개인키를 담으므로 저장소에 올리지 않습니다 (`.gitignore`에 포함).
+- 모든 키는 Sepolia 테스트용 개발 지갑입니다. 실제 자산이 있는 지갑 키는 쓰지 않습니다.
+- Reviewer와 Operator는 서로 다른 지갑이어야 합니다.
+
 ## 실행
 
 터미널 두 개가 필요합니다.
