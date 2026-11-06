@@ -13,7 +13,7 @@ const ROLES = {
   dataset: { label: "데이터셋", color: "var(--cyan)" },
   adapter: { label: "어댑터", color: "var(--yellow)" },
 };
-const STEPS = ["모델 정보 읽기", "정산 판정", "사람 승인", "블록체인 등록"];
+const STEPS = ["모델 정보 읽기", "정산 판정", "사람 승인", "블록체인 등록", "사용료 입금", "권리자 수령"];
 const APPROVABLE = ["APPROVED", "APPROVED_WITH_ESCROW"];
 const ALREADY = "ALREADY_REGISTERED";
 const OK_REASON = "라이선스·근거·수령 지갑 확인됨";
@@ -21,6 +21,8 @@ const ease = [0.22, 1, 0.36, 1];
 
 const shortWallet = (w) => (w && w.length > 12 ? `${w.slice(0, 6)}…${w.slice(-4)}` : w || "");
 const role = (r) => ROLES[r] || { label: r, color: "var(--mute)" };
+// wei 단위 잔돈은 소수점 18자리까지 길어지므로 줄여 보여준다.
+const shortEth = (v) => (Number(v) > 0 && Number(v) < 0.000001 ? "0.000001 미만" : v);
 
 // 정책 엔진 문구를 처음 보는 사람도 알아듣게 바꿔 보여준다. 모르는 문구는 그대로 둔다.
 const PLAIN_MESSAGES = [
@@ -49,10 +51,42 @@ function plainTarget(target) {
   return ROLES[first] ? `${ROLES[first].label} · ${rest.join(" ")}` : target;
 }
 
+// 블록체인 함수가 돌려주는 오류 코드를 짧은 말로 바꾼다. 원문은 마우스를 올리면 보인다.
+const SETUP_ERROR = "서버 설정 확인 필요";
+const ERROR_TEXT = {
+  NOT_APPROVED: "입금 거부 · 승인되지 않은 모델",
+  MODEL_HASH_NOT_REGISTERED: "입금 거부 · 등록되지 않은 모델",
+  NOT_REGISTERED: "등록되지 않은 모델",
+  INVALID_AMOUNT: "입금액 형식 오류",
+  NOTHING_TO_CLAIM: "받을 금액 없음",
+  INSUFFICIENT_ESCROW: "보관금 부족",
+  INVALID_HOLDER: "받는 사람 주소 오류",
+  INVALID_RECIPIENT: "받는 사람 주소 오류",
+  INVALID_CASE: "모델 정보 파일 형식 오류",
+  NETWORK_ERROR: "블록체인 연결 실패 · 다시 시도",
+  SIMULATION_FAILED: "전송 전 확인 실패 · 가스비 잔액 확인",
+  SEND_FAILED: "전송 실패 · 가스비 잔액 확인",
+  TX_PENDING: "확정 대기 중 · Etherscan에서 확인",
+  TX_FAILED: "거래 실패 · Etherscan에서 확인",
+  ONLY_OPERATOR: SETUP_ERROR,
+  ONLY_REVIEWER: SETUP_ERROR,
+  HOLDER_KEY_MISMATCH: SETUP_ERROR,
+  MISSING_CONFIG: SETUP_ERROR,
+  INVALID_KEY: SETUP_ERROR,
+  WRONG_NETWORK: SETUP_ERROR,
+  INVALID_CONTRACT_ADDRESS: SETUP_ERROR,
+  CONTRACT_NOT_FOUND: SETUP_ERROR,
+  WEB3_NOT_INSTALLED: SETUP_ERROR,
+  INVALID_WALLET_MAP: SETUP_ERROR,
+};
+const errorText = (result) => ERROR_TEXT[result.error_code] || result.error_message || "요청 실패";
+
 async function fetchJson(url, options) {
-  const res = await fetch(url, options);
+  const res = await fetch(url, options).catch(() => {
+    throw new Error("서버 연결 실패");
+  });
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body.detail || `요청 실패 (${res.status})`);
+  if (!res.ok) throw new Error(typeof body.detail === "string" ? body.detail : "요청 실패");
   return body;
 }
 
@@ -63,6 +97,7 @@ export default function App() {
   const [error, setError] = useState(null);
   const [upload, setUpload] = useState(null); // { name, state: "loading" | "done" | "error" }
   const [registration, setRegistration] = useState(null);
+  const [progress, setProgress] = useState({}); // 체인 등록·입금·수령 여부. 다른 예제의 늦은 응답은 key로 거른다.
 
   useEffect(() => {
     fetchJson("/api/examples")
@@ -105,10 +140,19 @@ export default function App() {
 
   const key = source ? `${source.kind}:${source.id || source.name}` : "none";
   const status = review?.result.status;
-  const registered = registration?.ok || registration?.error_code === ALREADY;
+  const chain = progress.key === key ? progress : {};
+  const registered = registration?.ok || registration?.error_code === ALREADY || (review?.register.ok && chain.registered);
   const stepStates = !review
-    ? ["", "", "", ""]
-    : ["done", "done", review.register.ok ? (registered ? "done" : "now") : "blocked", registered ? "done" : ""];
+    ? STEPS.map(() => "")
+    : [
+        "done",
+        "done",
+        review.register.ok ? (registered ? "done" : "now") : "blocked",
+        registered ? "done" : "",
+        registered ? (chain.deposited ? "done" : "now") : "",
+        registered && chain.deposited ? (chain.claimed ? "done" : "now") : "",
+      ];
+  const locked = APPROVABLE.includes(status) && !review?.tamper && !registered;
 
   return (
     <MotionConfig reducedMotion="user">
@@ -143,8 +187,8 @@ export default function App() {
               <Lineage review={review} />
               {review.tamper && <HashCheck tamper={review.tamper} />}
               {APPROVABLE.includes(status) && !review.tamper && <Shares result={review.result} />}
-              <Approve register={review.register} source={source} registration={registration} onResult={setRegistration} />
-              <Payment review={review} source={source} registration={registration} />
+              <Approve register={review.register} source={source} registration={registration} onChain={chain.registered} onResult={setRegistration} />
+              <Payment review={review} source={source} registration={registration} locked={locked} onProgress={(p) => setProgress({ key, ...p })} />
               {status !== "APPROVED" && <Reasons reasons={review.result.reasons} escrow={status === "APPROVED_WITH_ESCROW"} />}
             </motion.div>
           )}
@@ -499,7 +543,7 @@ function HashCheck({ tamper }) {
   );
 }
 
-function Approve({ register, source, registration, onResult }) {
+function Approve({ register, source, registration, onChain, onResult }) {
   const [pending, setPending] = useState(false);
 
   async function click() {
@@ -517,7 +561,7 @@ function Approve({ register, source, registration, onResult }) {
     }
   }
 
-  const already = registration?.error_code === ALREADY;
+  const already = registration?.error_code === ALREADY || (!registration && onChain);
   const done = registration?.ok || already;
 
   return (
@@ -539,7 +583,7 @@ function Approve({ register, source, registration, onResult }) {
           <AnimatePresence>
             {registration && (
               <motion.div className="result" aria-live="polite" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}>
-                {!already && registration.error_message && <p className="notice">{registration.error_message}</p>}
+                {!already && !registration.ok && <p className="notice" title={registration.error_message}>{errorText(registration)}</p>}
                 {already && registration.evidence_changed && <p className="notice">등록 당시와 근거 파일이 다름</p>}
                 {already && registration.contract_address && (
                   <a href={`https://sepolia.etherscan.io/address/${registration.contract_address}`} target="_blank" rel="noreferrer">
@@ -560,18 +604,13 @@ function Approve({ register, source, registration, onResult }) {
   );
 }
 
-const DEPOSIT_REFUSED = {
-  NOT_APPROVED: "입금 거부 · 승인되지 않은 모델",
-  MODEL_HASH_NOT_REGISTERED: "입금 거부 · 등록되지 않은 모델",
-};
-
 function TxResult({ result, done }) {
   if (!result) return null;
   return (
     <div className="result" aria-live="polite">
       {result.ok
         ? <p className="tx-done">{done}</p>
-        : <p className="notice">{DEPOSIT_REFUSED[result.error_code] || result.error_message}</p>}
+        : <p className="notice" title={result.error_message}>{errorText(result)}</p>}
       {result.etherscan_url && (
         <a href={result.etherscan_url} target="_blank" rel="noreferrer">
           Etherscan에서 보기 ({shortWallet(result.tx_hash)})
@@ -581,7 +620,7 @@ function TxResult({ result, done }) {
   );
 }
 
-function Payment({ review, source, registration }) {
+function Payment({ review, source, registration, locked, onProgress }) {
   const hash = review.tamper ? null : review.model.hash;
   const [amount, setAmount] = useState("0.001");
   const [pending, setPending] = useState(null); // "deposit" | 권리자 지갑 주소
@@ -595,6 +634,15 @@ function Payment({ review, source, registration }) {
   useEffect(() => {
     if (hash) refresh();
   }, [hash, registration]);
+
+  // 이번 화면에서 입금했거나 체인에 받을 돈이 남아 있으면 입금 단계는 끝난 것으로 본다.
+  useEffect(() => {
+    onProgress({
+      registered: !!settlement?.registered,
+      deposited: !!deposited?.ok || !!settlement?.recipients?.some((r) => r.claimable_eth !== "0") || (settlement?.escrow_eth ?? "0") !== "0",
+      claimed: Object.values(claims).some((c) => c?.ok),
+    });
+  }, [settlement, deposited, claims]);
 
   async function send() {
     setPending("deposit");
@@ -644,15 +692,15 @@ function Payment({ review, source, registration }) {
 
   return (
     <>
-      <section className="block">
+      <section className={`block ${locked ? "locked" : ""}`}>
         <h2>사용료 입금</h2>
         <div className="approve">
           <label className="amount">
             <span className="sr-only">입금액</span>
-            <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <input inputMode="decimal" value={amount} disabled={locked} onChange={(e) => setAmount(e.target.value)} />
             <span>ETH</span>
           </label>
-          <button className="primary deposit" disabled={!!pending || !amount} onClick={send}>
+          <button className="primary deposit" disabled={locked || !!pending || !amount} onClick={send}>
             {pending === "deposit" ? <span className="spinner" /> : "입금"}
           </button>
           <TxResult result={deposited} done="입금 완료" />
@@ -668,9 +716,9 @@ function Payment({ review, source, registration }) {
               return (
                 <li key={row.wallet}>
                   <i style={{ background: role(info?.role).color }} />
-                  <span className="legend-label">{info?.name || row.holder}</span>
+                  <span className="legend-label">{info ? `${role(info.role).label} · ${info.name}` : `보관금 수령 · ${row.holder}`}</span>
                   <span className="wallet">{shortWallet(row.wallet)}</span>
-                  <strong>{row.claimable_eth} ETH</strong>
+                  <strong title={`${row.claimable_eth} ETH`}>{shortEth(row.claimable_eth)} ETH</strong>
                   <button
                     className="claim"
                     disabled={!!pending || !row.holder || row.claimable_eth === "0"}
@@ -687,7 +735,7 @@ function Payment({ review, source, registration }) {
                 <i style={{ background: "var(--mute)" }} />
                 <span className="legend-label">따로 보관{review.escrow_holder && ` · ${review.escrow_holder}에게 지급 예정`}</span>
                 <span className="wallet">—</span>
-                <strong>{settlement.escrow_eth} ETH</strong>
+                <strong title={`${settlement.escrow_eth} ETH`}>{shortEth(settlement.escrow_eth)} ETH</strong>
                 {review.escrow_holder ? (
                   <button className="claim" disabled={!!pending} onClick={release}>
                     {pending === "release" ? <span className="spinner dark" /> : "지급"}

@@ -53,21 +53,21 @@ app = FastAPI()
 def review(case, raw):
     """판정 결과와 등록 가능 여부를 화면용 한 묶음으로 만든다."""
     if not isinstance(case, dict):
-        raise HTTPException(400, "case JSON은 객체여야 합니다.")
+        raise HTTPException(400, "모델 정보 파일 형식 오류")
     result = pe.evaluate(case, pe.load_wallet_map())
     model = pe._as_dict(case.get("input"))
 
     register = {"ok": False, "reason": None}
     if result["status"] not in (pe.APPROVED, pe.APPROVED_WITH_ESCROW):
-        register["reason"] = "이 상태에서는 정산 규칙을 등록할 수 없습니다."
+        register["reason"] = "이 판정은 등록 불가"
     elif not model.get("artifact_sha256"):
-        register["reason"] = "모델 파일 해시(input.artifact_sha256)가 없어 등록할 수 없습니다."
+        register["reason"] = "모델 파일 해시 없음 · 등록 불가"
     else:
         try:
             pe.to_contract_args(result, model["artifact_sha256"], hashlib.sha256(raw).hexdigest())
             register["ok"] = True
         except ValueError as e:
-            register["reason"] = f"등록 인자 생성 실패: {e}"
+            register["reason"] = f"등록 정보 만들기 실패 · {e}"
 
     return {
         "model": {"id": model.get("model_id"), "url": model.get("model_url"), "hash": model.get("artifact_sha256")},
@@ -90,7 +90,7 @@ def load_example(example_id):
     """예제 파일을 읽어 (case, 원문 바이트)를 돌려준다. 해시가 빠진 예제는 공개된 실제 해시를 채운다."""
     path = FIXTURES_DIR / f"{example_id}.json"
     if path.parent != FIXTURES_DIR or not path.is_file():
-        raise HTTPException(404, "예제를 찾을 수 없습니다.")
+        raise HTTPException(404, "예제 없음")
     raw = path.read_bytes()
     case = json.loads(raw)
     model = case.get("input")
@@ -134,14 +134,14 @@ def deposit(case, amount_eth, model_hash=None):
     model_hash를 주면 case의 해시 대신 그 해시로 입금한다(바꿔치기 시연).
     """
     if not isinstance(case, dict):
-        raise HTTPException(400, "case JSON은 객체여야 합니다.")
-    status = pe.evaluate(case, pe.load_wallet_map())["status"]
+        raise HTTPException(400, "모델 정보 파일 형식 오류")
+    status =pe.evaluate(case, pe.load_wallet_map())["status"]
     model_hash = model_hash or pe._as_dict(case.get("input")).get("artifact_sha256")
     if status not in (pe.APPROVED, pe.APPROVED_WITH_ESCROW) or not model_hash:
-        return tx_result({"ok": False, "status": wa.REJECTED, "error_code": "NOT_APPROVED", "error_message": "승인되지 않은 모델입니다."})
+        return tx_result({"ok": False, "status": wa.REJECTED, "error_code": "NOT_APPROVED", "error_message": "승인되지 않은 모델"})
     wei = to_wei(amount_eth)
     if wei is None:
-        return tx_result({"ok": False, "error_code": "INVALID_AMOUNT", "error_message": "입금액 형식이 올바르지 않습니다."})
+        return tx_result({"ok": False, "error_code": "INVALID_AMOUNT", "error_message": "입금액 형식 오류"})
     return tx_result(wa.deposit(model_hash, wei, send=True))
 
 
@@ -191,7 +191,7 @@ def get_example(example_id: str):
 def register_example(example_id: str):
     _, raw = load_example(example_id)
     if example_id in EXAMPLE_TAMPERED_HASHES:
-        raise HTTPException(400, "원본과 다른 파일이라 등록할 수 없습니다.")
+        raise HTTPException(400, "원본과 다른 파일이라 등록 불가")
     return register(raw)
 
 
@@ -204,7 +204,7 @@ def deposit_example(example_id: str, amount_eth: str):
 @app.post("/api/examples/{example_id}/release")
 def release_example(example_id: str):
     if example_id not in EXAMPLE_ESCROW_HOLDERS:
-        raise HTTPException(404, "보관금을 지급할 예제가 아닙니다.")
+        raise HTTPException(404, "보관금 지급 대상 아님")
     case, raw = load_example(example_id)
     return release(case, raw, EXAMPLE_ESCROW_HOLDERS[example_id])
 
@@ -212,8 +212,8 @@ def release_example(example_id: str):
 def parse_case(raw):
     try:
         return json.loads(raw)
-    except json.JSONDecodeError as e:
-        raise HTTPException(400, f"JSON을 읽을 수 없음: {e}")
+    except json.JSONDecodeError:
+        raise HTTPException(400, "JSON 파일 읽기 실패") from None
 
 
 @app.post("/api/review")
