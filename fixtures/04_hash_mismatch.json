@@ -7,7 +7,8 @@
     "revision": null,
     "checked_at": "2026-10-29",
     "artifact_file_name": "adapter_model.safetensors",
-    "artifact_sha256": "4ef4de62188b4b3718258d63a1a6d9ad90416aa2c578abd67fabe69a7111a352"
+    "artifact_sha256": "4ef4de62188b4b3718258d63a1a6d9ad90416aa2c578abd67fabe69a7111a352",
+    "tampered_artifact_sha256": "b1522f09eaf32b94e8263ed3b56d65d210a4eeeb550774554138c85ab9b8151a"
   },
   "components": [
     {
@@ -93,8 +94,8 @@
     "findings": [
       "어댑터와 베이스 모델의 라이선스 표기가 모두 Apache-2.0임",
       "학습 데이터는 카드에 CC BY 4.0으로 표기됨",
-      "원본 SHA-256 4ef4de62188b4b3718258d63a1a6d9ad90416aa2c578abd67fabe69a7111a352는 HF API(https://huggingface.co/api/models/whosouravsharma/paper-qa-lora/tree/main)의 lfs.oid 및 크기 8746152바이트와 일치함",
-      "변조본 SHA-256 b1522f09eaf32b94e8263ed3b56d65d210a4eeeb550774554138c85ab9b8151a는 원본 끝에 1바이트를 추가한 복사본의 해시이며 등록되지 않은 값임"
+      "원본 SHA-256은 input.artifact_sha256에 기록하며, HF API(https://huggingface.co/api/models/whosouravsharma/paper-qa-lora/tree/main)의 lfs.oid 및 크기 8746152바이트와 일치함",
+      "변조본 SHA-256은 input.tampered_artifact_sha256에 기록하며, 원본 끝에 1바이트를 추가한 복사본의 해시임"
     ]
   },
   "policy": {
@@ -113,7 +114,7 @@
   },
   "gold": {
     "expected_status": "APPROVED",
-    "state_reason": "모델 자체는 01과 같이 APPROVED 후보이나, 정산 규칙에는 원본 해시만 등록됨. 변조본 해시로 입금을 시도하면 미등록 해시라 REJECTED여야 함",
+    "state_reason": "모델 정책 상태는 01과 같이 APPROVED이며, 등록된 원본 해시와 다른 변조 해시로 deposit을 시도하면 실행 결과가 REJECTED됨",
     "split": "dev",
     "annotators": [
       "hyeri"
