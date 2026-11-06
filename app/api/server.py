@@ -38,6 +38,15 @@ EXAMPLE_HASHES = {
     "01_normal_paper_qa": "4ef4de62188b4b3718258d63a1a6d9ad90416aa2c578abd67fabe69a7111a352",
 }
 
+# 시연 ④: 바꿔치기한 파일의 해시. 원본 해시로 sha256("tampered:" + 원본)을 계산한 값이며 체인에 등록되어 있지 않다.
+EXAMPLE_TAMPERED_HASHES = {
+    "04_hash_mismatch": "18a2edf1b5ff66ac48a59f1e386c315d6ae5d45c56d243cfcba88581fff1824b",
+}
+# 시연 ③: Reviewer가 확인한 뒤 보관금을 지급할 권리자.
+EXAMPLE_ESCROW_HOLDERS = {
+    "03_escrow_unknown_recipient": "Holder_B",
+}
+
 app = FastAPI()
 
 
@@ -119,12 +128,15 @@ def tx_result(result):
     return {k: result.get(k) for k in ("ok", "status", "tx_hash", "etherscan_url", "error_code", "error_message")}
 
 
-def deposit(case, amount_eth):
-    """승인된 모델만 입금한다. 승인되지 않았거나 해시가 없으면 네트워크에 접속하지 않고 거부한다."""
+def deposit(case, amount_eth, model_hash=None):
+    """승인된 모델만 입금한다. 승인되지 않았거나 해시가 없으면 네트워크에 접속하지 않고 거부한다.
+
+    model_hash를 주면 case의 해시 대신 그 해시로 입금한다(바꿔치기 시연).
+    """
     if not isinstance(case, dict):
         raise HTTPException(400, "case JSON은 객체여야 합니다.")
     status = pe.evaluate(case, pe.load_wallet_map())["status"]
-    model_hash = pe._as_dict(case.get("input")).get("artifact_sha256")
+    model_hash = model_hash or pe._as_dict(case.get("input")).get("artifact_sha256")
     if status not in (pe.APPROVED, pe.APPROVED_WITH_ESCROW) or not model_hash:
         return tx_result({"ok": False, "status": wa.REJECTED, "error_code": "NOT_APPROVED", "error_message": "승인되지 않은 모델입니다."})
     wei = to_wei(amount_eth)
@@ -142,35 +154,59 @@ def settlement(model_hash):
         contract, _ = wr._open_contract(wr._connect(settings["SEPOLIA_RPC_URL"]), settings["CONTRACT_ADDRESS"])
         rule = wa._get_rule(contract, model_hash)
         holders = {wallet.lower(): name for name, wallet in wa.load_holder_addresses().items()}
-        recipients = [
-            {
-                "wallet": wallet,
-                "holder": holders.get(wallet.lower()),
-                "claimable_eth": eth(wa._call(contract.functions.claimable(key, wallet), "수령 가능 금액")),
-            }
-            for wallet in rule["recipients"]
-        ]
+        recipients = []
+        for wallet in rule["recipients"] + [w for w in wa.load_holder_addresses().values() if w not in rule["recipients"]]:
+            amount = wa._call(contract.functions.claimable(key, wallet), "수령 가능 금액")
+            # 분배 대상이 아닌 권리자는 보관금을 지급받아 받을 돈이 있을 때만 보여 준다.
+            if wallet in rule["recipients"] or amount > 0:
+                recipients.append({"wallet": wallet, "holder": holders.get(wallet.lower()), "claimable_eth": eth(amount)})
     except RegisterError as e:
         return {"registered": False if e.code == "MODEL_HASH_NOT_REGISTERED" else None, "error_message": e.message}
     return {"registered": True, "escrow_eth": eth(rule["escrow_balance"]), "recipients": recipients}
 
 
+def release(case, raw, holder):
+    """보관금 전액을 권리자의 받을 돈으로 옮긴다. 근거 해시는 예제 파일과 수령자 주소를 묶어 만든다."""
+    model_hash = case["input"]["artifact_sha256"]
+    current = settlement(model_hash)
+    if not current["registered"]:
+        return tx_result({"ok": False, "error_code": "NOT_REGISTERED", "error_message": current["error_message"]})
+    wallet = wa.load_holder_addresses()[holder]
+    evidence = hashlib.sha256(raw + wallet.encode()).hexdigest()
+    return tx_result(wa.release_escrow(model_hash, wallet, to_wei(current["escrow_eth"]), evidence, send=True))
+
+
 @app.get("/api/examples/{example_id}")
 def get_example(example_id: str):
     case, raw = load_example(example_id)
-    return review(case, raw)
+    data = review(case, raw)
+    if example_id in EXAMPLE_TAMPERED_HASHES:
+        data["tamper"] = {"original": data["model"]["hash"], "submitted": EXAMPLE_TAMPERED_HASHES[example_id]}
+        data["register"] = {"ok": False, "reason": "원본과 다른 파일이라 등록 불가"}
+    data["escrow_holder"] = EXAMPLE_ESCROW_HOLDERS.get(example_id)
+    return data
 
 
 @app.post("/api/examples/{example_id}/register")
 def register_example(example_id: str):
     _, raw = load_example(example_id)
+    if example_id in EXAMPLE_TAMPERED_HASHES:
+        raise HTTPException(400, "원본과 다른 파일이라 등록할 수 없습니다.")
     return register(raw)
 
 
 @app.post("/api/examples/{example_id}/deposit")
 def deposit_example(example_id: str, amount_eth: str):
     case, _ = load_example(example_id)
-    return deposit(case, amount_eth)
+    return deposit(case, amount_eth, EXAMPLE_TAMPERED_HASHES.get(example_id))
+
+
+@app.post("/api/examples/{example_id}/release")
+def release_example(example_id: str):
+    if example_id not in EXAMPLE_ESCROW_HOLDERS:
+        raise HTTPException(404, "보관금을 지급할 예제가 아닙니다.")
+    case, raw = load_example(example_id)
+    return release(case, raw, EXAMPLE_ESCROW_HOLDERS[example_id])
 
 
 def parse_case(raw):

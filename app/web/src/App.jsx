@@ -6,6 +6,7 @@ const STATUS = {
   APPROVED_WITH_ESCROW: { label: "일부 보관 후 정산", tone: "orange", desc: "지갑 못 찾은 재료의 사용료만 보관" },
   HOLD: { label: "정산 보류", tone: "red", desc: "상업적 사용 불가 재료 있음" },
   REVIEW: { label: "사람 검토 필요", tone: "yellow", desc: "근거 부족 · 담당자 확인 필요" },
+  TAMPERED: { label: "원본과 다른 파일", tone: "red", desc: "등록된 해시와 일치하지 않음" },
 };
 const ROLES = {
   base_model: { label: "베이스 모델", color: "var(--purple)" },
@@ -138,9 +139,10 @@ export default function App() {
               exit={{ opacity: 0, filter: "blur(6px)" }}
               transition={{ duration: 0.25 }}
             >
-              <Verdict status={status} modelId={review.model.id} />
+              <Verdict status={review.tamper ? "TAMPERED" : status} modelId={review.model.id} />
               <Lineage review={review} />
-              {APPROVABLE.includes(status) && <Shares result={review.result} />}
+              {review.tamper && <HashCheck tamper={review.tamper} />}
+              {APPROVABLE.includes(status) && !review.tamper && <Shares result={review.result} />}
               <Approve register={review.register} source={source} registration={registration} onResult={setRegistration} />
               <Payment review={review} source={source} registration={registration} />
               {status !== "APPROVED" && <Reasons reasons={review.result.reasons} escrow={status === "APPROVED_WITH_ESCROW"} />}
@@ -479,6 +481,24 @@ function Ticker({ value, start = true }) {
   return <><span ref={ref}>0</span>%</>;
 }
 
+function HashCheck({ tamper }) {
+  return (
+    <section className="block">
+      <h2>파일 해시 비교</h2>
+      <dl className="hashes">
+        <div>
+          <dt>등록된 원본</dt>
+          <dd>{tamper.original}</dd>
+        </div>
+        <div className="mismatch">
+          <dt>입금하려는 파일</dt>
+          <dd>{tamper.submitted}</dd>
+        </div>
+      </dl>
+    </section>
+  );
+}
+
 function Approve({ register, source, registration, onResult }) {
   const [pending, setPending] = useState(false);
 
@@ -562,12 +582,13 @@ function TxResult({ result, done }) {
 }
 
 function Payment({ review, source, registration }) {
-  const hash = review.model.hash;
+  const hash = review.tamper ? null : review.model.hash;
   const [amount, setAmount] = useState("0.001");
   const [pending, setPending] = useState(null); // "deposit" | 권리자 지갑 주소
   const [deposited, setDeposited] = useState(null);
   const [claims, setClaims] = useState({});
   const [settlement, setSettlement] = useState(null);
+  const [released, setReleased] = useState(null);
 
   const refresh = () => fetchJson(`/api/settlement/${hash}`).then(setSettlement).catch(() => setSettlement(null));
 
@@ -601,6 +622,19 @@ function Payment({ review, source, registration }) {
       await refresh();
     } catch (e) {
       setClaims((c) => ({ ...c, [row.wallet]: { ok: false, error_message: e.message } }));
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function release() {
+    setPending("release");
+    setReleased(null);
+    try {
+      setReleased(await fetchJson(`/api/examples/${source.id}/release`, { method: "POST" }));
+      await refresh();
+    } catch (e) {
+      setReleased({ ok: false, error_message: e.message });
     } finally {
       setPending(null);
     }
@@ -651,13 +685,18 @@ function Payment({ review, source, registration }) {
             {settlement.escrow_eth !== "0" && (
               <li>
                 <i style={{ background: "var(--mute)" }} />
-                <span className="legend-label">따로 보관</span>
+                <span className="legend-label">따로 보관{review.escrow_holder && ` · ${review.escrow_holder}에게 지급 예정`}</span>
                 <span className="wallet">—</span>
                 <strong>{settlement.escrow_eth} ETH</strong>
-                <span />
+                {review.escrow_holder ? (
+                  <button className="claim" disabled={!!pending} onClick={release}>
+                    {pending === "release" ? <span className="spinner dark" /> : "지급"}
+                  </button>
+                ) : <span />}
               </li>
             )}
           </ul>
+          <TxResult result={released} done="보관금 지급 완료" />
         </section>
       )}
     </>
