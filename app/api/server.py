@@ -9,7 +9,6 @@
 
 import hashlib
 import json
-import os
 import sys
 import tempfile
 from decimal import Decimal, InvalidOperation
@@ -30,6 +29,7 @@ import extraction_validator as ev  # noqa: E402
 import hf_metadata as hm  # noqa: E402
 import hf_readme as hr  # noqa: E402
 import llm_extractor as le  # noqa: E402
+import llm_provider as lp  # noqa: E402
 from web3_register import RegisterError  # noqa: E402
 
 FIXTURES_DIR = ROOT / "fixtures"
@@ -59,78 +59,6 @@ app = FastAPI()
 
 class ExtractRequest(BaseModel):
     model: str
-
-
-def build_call_llm_from_env():
-    """환경변수에 지정된 제공자용 prompt 호출 함수를 만든다."""
-    provider = os.environ.get("LLM_PROVIDER", "").strip().lower()
-    if not provider:
-        raise ValueError("LLM_PROVIDER 환경변수가 필요합니다.")
-    if provider not in {"openai", "anthropic"}:
-        raise ValueError("지원하지 않는 LLM 제공자입니다. openai 또는 anthropic만 사용할 수 있습니다.")
-
-    model = os.environ.get("LLM_MODEL", "").strip()
-    if not model:
-        raise ValueError("LLM_MODEL 환경변수가 필요합니다.")
-
-    key_name = "OPENAI_API_KEY" if provider == "openai" else "ANTHROPIC_API_KEY"
-    api_key = os.environ.get(key_name, "").strip()
-    if not api_key:
-        raise ValueError(f"{key_name} 환경변수가 필요합니다.")
-
-    if provider == "openai":
-        try:
-            from openai import OpenAI
-        except ImportError:
-            raise RuntimeError("OpenAI Python SDK가 설치되어 있지 않습니다.") from None
-        try:
-            client = OpenAI(api_key=api_key)
-        except Exception:
-            raise RuntimeError("OpenAI 클라이언트를 초기화하지 못했습니다.") from None
-
-        def call_llm(prompt: str) -> str:
-            try:
-                response = client.chat.completions.create(
-                    model=model,
-                    messages=[{"role": "user", "content": prompt}],
-                )
-                content = response.choices[0].message.content
-            except Exception:
-                raise RuntimeError("OpenAI API 호출에 실패했습니다.") from None
-            if not isinstance(content, str):
-                raise RuntimeError("OpenAI 응답에 텍스트가 없습니다.")
-            return content
-
-        return call_llm
-
-    try:
-        from anthropic import Anthropic
-    except ImportError:
-        raise RuntimeError("Anthropic Python SDK가 설치되어 있지 않습니다.") from None
-    try:
-        client = Anthropic(api_key=api_key)
-    except Exception:
-        raise RuntimeError("Anthropic 클라이언트를 초기화하지 못했습니다.") from None
-
-    def call_llm(prompt: str) -> str:
-        try:
-            response = client.messages.create(
-                model=model,
-                max_tokens=4096,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            text = "".join(
-                block.text
-                for block in response.content
-                if getattr(block, "type", None) == "text" and isinstance(block.text, str)
-            )
-        except Exception:
-            raise RuntimeError("Anthropic API 호출에 실패했습니다.") from None
-        if not text:
-            raise RuntimeError("Anthropic 응답에 텍스트가 없습니다.")
-        return text
-
-    return call_llm
 
 
 def _extract_error(status_code: int, path: str, message: str, validation=None):
@@ -165,7 +93,7 @@ def extract_model(request: ExtractRequest):
         return _extract_error(502, "readme", "Hugging Face README를 조회하지 못했습니다.")
 
     try:
-        call_llm = build_call_llm_from_env()
+        call_llm = lp.build_call_llm_from_env()
     except ValueError as error:
         return _extract_error(503, "llm_provider", str(error))
     except RuntimeError as error:
