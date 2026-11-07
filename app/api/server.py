@@ -40,14 +40,9 @@ EXAMPLES = {
     "03_review_m4xx101": "라이선스 애매",
     "04_hash_mismatch": "파일 바꿔치기",
 }
-# 예제 파일에 비어 있는 모델 파일 해시. Hugging Face에 공개된 adapter_model.safetensors의 SHA-256이다.
-EXAMPLE_HASHES = {
-    "01_normal_paper_qa": "4ef4de62188b4b3718258d63a1a6d9ad90416aa2c578abd67fabe69a7111a352",
-}
-
-# 시연 ④: 바꿔치기한 파일의 해시. 원본 해시로 sha256("tampered:" + 원본)을 계산한 값이며 체인에 등록되어 있지 않다.
+# 시연 ④: 원본 파일 끝에 1바이트를 추가한 변조본의 SHA-256. 체인에 등록되어 있지 않다.
 EXAMPLE_TAMPERED_HASHES = {
-    "04_hash_mismatch": "18a2edf1b5ff66ac48a59f1e386c315d6ae5d45c56d243cfcba88581fff1824b",
+    "04_hash_mismatch": "b1522f09eaf32b94e8263ed3b56d65d210a4eeeb550774554138c85ab9b8151a",
 }
 # 시연 ③: Reviewer가 확인한 뒤 보관금을 지급할 권리자.
 EXAMPLE_ESCROW_HOLDERS = {
@@ -174,16 +169,12 @@ def list_examples():
 
 
 def load_example(example_id):
-    """예제 파일을 읽어 (case, 원문 바이트)를 돌려준다. 해시가 빠진 예제는 공개된 실제 해시를 채운다."""
+    """예제 파일을 읽어 (case, 원문 바이트)를 돌려준다."""
     path = FIXTURES_DIR / f"{example_id}.json"
     if path.parent != FIXTURES_DIR or not path.is_file():
         raise HTTPException(404, "예제 없음")
     raw = path.read_bytes()
     case = json.loads(raw)
-    model = case.get("input")
-    if example_id in EXAMPLE_HASHES and isinstance(model, dict) and not model.get("artifact_sha256"):
-        model["artifact_sha256"] = EXAMPLE_HASHES[example_id]
-        raw = json.dumps(case, ensure_ascii=False, indent=2).encode()
     return case, raw
 
 

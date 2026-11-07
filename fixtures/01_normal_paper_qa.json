@@ -7,8 +7,8 @@
     "model_url": "https://huggingface.co/whosouravsharma/paper-qa-lora",
     "revision": null,
     "checked_at": "2026-10-29",
-    "artifact_file_name": null,
-    "artifact_sha256": null
+    "artifact_file_name": "adapter_model.safetensors",
+    "artifact_sha256": "4ef4de62188b4b3718258d63a1a6d9ad90416aa2c578abd67fabe69a7111a352"
   },
 
   "components": [

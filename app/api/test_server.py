@@ -36,7 +36,28 @@ class DepositTest(unittest.TestCase):
     def test_tampered_example_deposits_with_tampered_hash(self):
         with mock.patch.object(server.wa, "deposit", return_value={"ok": False}) as sent:
             server.deposit_example("04_hash_mismatch", "0.001")
-        self.assertEqual(sent.call_args.args[0], server.EXAMPLE_TAMPERED_HASHES["04_hash_mismatch"])
+        self.assertEqual(
+            sent.call_args.args[0],
+            "b1522f09eaf32b94e8263ed3b56d65d210a4eeeb550774554138c85ab9b8151a",
+        )
+
+    def test_examples_use_fixture_original_and_tampered_hashes(self):
+        original_hash = "4ef4de62188b4b3718258d63a1a6d9ad90416aa2c578abd67fabe69a7111a352"
+        tampered_hash = "b1522f09eaf32b94e8263ed3b56d65d210a4eeeb550774554138c85ab9b8151a"
+
+        normal = server.get_example("01_normal_paper_qa")
+        tampered = server.get_example("04_hash_mismatch")
+        normal_case = case("01_normal_paper_qa")
+        tampered_findings = case("04_hash_mismatch")["license_analysis"]["findings"]
+
+        self.assertEqual(normal_case["input"]["artifact_file_name"], "adapter_model.safetensors")
+        self.assertEqual(normal_case["input"]["artifact_sha256"], original_hash)
+        self.assertEqual(normal["model"]["hash"], original_hash)
+        self.assertEqual(tampered["model"]["hash"], original_hash)
+        self.assertEqual(tampered["tamper"]["original"], original_hash)
+        self.assertEqual(tampered["tamper"]["submitted"], tampered_hash)
+        self.assertTrue(any(original_hash in finding for finding in tampered_findings))
+        self.assertTrue(any(tampered_hash in finding for finding in tampered_findings))
 
     def test_tampered_example_cannot_register(self):
         self.assertFalse(server.get_example("04_hash_mismatch")["register"]["ok"])
