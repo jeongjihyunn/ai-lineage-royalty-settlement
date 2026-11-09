@@ -1,0 +1,97 @@
+{
+  "schema_version": "0.2",
+  "case_id": "hf_kaitchup_opt_1_3b_rlhf_dschatlora_20261107",
+  "input": {
+    "model_id": "kaitchup/OPT-1.3B-RLHF-DSChatLoRA",
+    "model_url": "https://huggingface.co/kaitchup/OPT-1.3B-RLHF-DSChatLoRA",
+    "revision": null,
+    "checked_at": "2026-11-07",
+    "artifact_file_name": null,
+    "artifact_sha256": null
+  },
+  "components": [
+    {
+      "role": "base_model",
+      "name": "facebook/opt-1.3b",
+      "relationship": "base_for",
+      "publisher": null,
+      "publisher_confidence": "unknown",
+      "rights_holder": null,
+      "rights_holder_status": "unknown",
+      "license_id": null,
+      "license_name": null,
+      "evidence": []
+    },
+    {
+      "role": "dataset",
+      "name": "Dahoas/rm-static",
+      "relationship": "trained_on",
+      "publisher": null,
+      "publisher_confidence": "unknown",
+      "rights_holder": null,
+      "rights_holder_status": "unknown",
+      "license_id": null,
+      "license_name": null,
+      "evidence": []
+    },
+    {
+      "role": "adapter",
+      "name": "kaitchup/OPT-1.3B-RLHF-DSChatLoRA",
+      "relationship": "adapter_of",
+      "publisher": null,
+      "publisher_confidence": "unknown",
+      "rights_holder": null,
+      "rights_holder_status": "unknown",
+      "license_id": "cc-by-nc-sa-4.0",
+      "license_name": null,
+      "evidence": [
+        {
+          "evidence_quote": "This a model is a chat model fine-tuned with RLHF using DeepSpeed Chat and LoRA. It is based on OPT1.3B.",
+          "evidence_location": "Model card",
+          "source_url": "https://huggingface.co/kaitchup/OPT-1.3B-RLHF-DSChatLoRA"
+        }
+      ]
+    }
+  ],
+  "license_analysis": {
+    "declared_license": {
+      "value": "cc-by-nc-sa-4.0",
+      "evidence_quote": null,
+      "evidence_location": "Model card license metadata",
+      "source_url": "https://huggingface.co/kaitchup/OPT-1.3B-RLHF-DSChatLoRA"
+    },
+    "upstream_license": {
+      "value": null,
+      "evidence_quote": null,
+      "evidence_location": null,
+      "source_url": null
+    },
+    "license_metadata_mismatch": null,
+    "commercial_use_assessment": "prohibited",
+    "findings": [
+      "CC BY-NC-SA 4.0에는 비상업 조건이 있어 상업 정산을 진행하지 않음",
+      "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    ]
+  },
+  "policy": {
+    "automated_status": null,
+    "reasons": []
+  },
+  "review": {
+    "reviewer_decision": null,
+    "reviewer_wallet": null,
+    "approved_at": null
+  },
+  "settlement": {
+    "recipients": [],
+    "escrow_bps": 0,
+    "total_bps": 0
+  },
+  "gold": {
+    "expected_status": "HOLD",
+    "state_reason": "모델 카드의 CC BY-NC-SA 4.0 선언에 비상업 조건이 있어 상업 정산을 진행하지 않음",
+    "split": "eval",
+    "annotators": ["jihyeon"],
+    "annotation_minutes": null
+  }
+}

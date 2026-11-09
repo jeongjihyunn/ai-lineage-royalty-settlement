@@ -1,0 +1,84 @@
+{
+  "schema_version": "0.2",
+  "case_id": "hf_nousresearch_hermes_3_llama_3_1_8b_20261107",
+  "input": {
+    "model_id": "NousResearch/Hermes-3-Llama-3.1-8B",
+    "model_url": "https://huggingface.co/NousResearch/Hermes-3-Llama-3.1-8B",
+    "revision": "cc68dc2",
+    "checked_at": "2026-11-07",
+    "artifact_file_name": null,
+    "artifact_sha256": null
+  },
+  "components": [
+    {
+      "role": "base_model",
+      "name": "meta-llama/Meta-Llama-3.1-8B",
+      "relationship": "base_for",
+      "publisher": null,
+      "publisher_confidence": "unknown",
+      "rights_holder": null,
+      "rights_holder_status": "unknown",
+      "license_id": "llama3",
+      "license_name": null,
+      "evidence": [
+        {
+          "evidence_quote": "base_model: meta-llama/Meta-Llama-3.1-8B",
+          "evidence_location": "Model card metadata",
+          "source_url": "https://huggingface.co/NousResearch/Hermes-3-Llama-3.1-8B"
+        }
+      ]
+    },
+    {
+      "role": "adapter",
+      "name": "NousResearch/Hermes-3-Llama-3.1-8B",
+      "relationship": "adapter_of",
+      "publisher": null,
+      "publisher_confidence": "unknown",
+      "rights_holder": null,
+      "rights_holder_status": "unknown",
+      "license_id": "llama3",
+      "license_name": null,
+      "evidence": []
+    }
+  ],
+  "license_analysis": {
+    "declared_license": {
+      "value": "llama3",
+      "evidence_quote": null,
+      "evidence_location": "Model card license metadata",
+      "source_url": "https://huggingface.co/NousResearch/Hermes-3-Llama-3.1-8B"
+    },
+    "upstream_license": {
+      "value": null,
+      "evidence_quote": null,
+      "evidence_location": null,
+      "source_url": null
+    },
+    "license_metadata_mismatch": null,
+    "commercial_use_assessment": "review_required",
+    "findings": [
+      "조건부 Llama 라이선스 및 구체적 데이터셋·권리 근거가 부족해 자동 승인하지 않음"
+    ]
+  },
+  "policy": {
+    "automated_status": null,
+    "reasons": []
+  },
+  "review": {
+    "reviewer_decision": null,
+    "reviewer_wallet": null,
+    "approved_at": null
+  },
+  "settlement": {
+    "recipients": [],
+    "escrow_bps": 0,
+    "total_bps": 0
+  },
+  "gold": {
+    "expected_status": "REVIEW",
+    "state_reason": "조건부 Llama 라이선스 및 구체적 데이터셋·권리 근거가 부족해 자동 승인하지 않음",
+    "split": "eval",
+    "annotators": ["jihyeon"],
+    "annotation_minutes": null
+  }
+}

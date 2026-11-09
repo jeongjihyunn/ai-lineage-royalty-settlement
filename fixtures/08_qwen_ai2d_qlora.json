@@ -1,0 +1,108 @@
+{
+  "schema_version": "0.2",
+  "case_id": "hf_drmajid_qwen2_vl_2b_ai2d_qlora_20261107",
+  "input": {
+    "model_id": "DrMajid/qwen2-vl-2b-ai2d-qlora",
+    "model_url": "https://huggingface.co/DrMajid/qwen2-vl-2b-ai2d-qlora",
+    "revision": "f51f885",
+    "checked_at": "2026-11-07",
+    "artifact_file_name": null,
+    "artifact_sha256": null
+  },
+  "components": [
+    {
+      "role": "base_model",
+      "name": "Qwen/Qwen2-VL-2B-Instruct",
+      "relationship": "base_for",
+      "publisher": null,
+      "publisher_confidence": "unknown",
+      "rights_holder": null,
+      "rights_holder_status": "unknown",
+      "license_id": null,
+      "license_name": null,
+      "evidence": [
+        {
+          "evidence_quote": "This repository contains a PEFT/LoRA adapter for `Qwen/Qwen2-VL-2B-Instruct`, fine-tuned on the AI2D subset of `HuggingFaceM4/the_cauldron`.",
+          "evidence_location": "Model card",
+          "source_url": "https://huggingface.co/DrMajid/qwen2-vl-2b-ai2d-qlora"
+        }
+      ]
+    },
+    {
+      "role": "dataset",
+      "name": "HuggingFaceM4/the_cauldron",
+      "relationship": "trained_on",
+      "publisher": null,
+      "publisher_confidence": "unknown",
+      "rights_holder": null,
+      "rights_holder_status": "unknown",
+      "license_id": null,
+      "license_name": null,
+      "evidence": [
+        {
+          "evidence_quote": "This repository contains a PEFT/LoRA adapter for `Qwen/Qwen2-VL-2B-Instruct`, fine-tuned on the AI2D subset of `HuggingFaceM4/the_cauldron`.",
+          "evidence_location": "Model card",
+          "source_url": "https://huggingface.co/DrMajid/qwen2-vl-2b-ai2d-qlora"
+        }
+      ]
+    },
+    {
+      "role": "adapter",
+      "name": "DrMajid/qwen2-vl-2b-ai2d-qlora",
+      "relationship": "adapter_of",
+      "publisher": null,
+      "publisher_confidence": "unknown",
+      "rights_holder": null,
+      "rights_holder_status": "unknown",
+      "license_id": "apache-2.0",
+      "license_name": null,
+      "evidence": [
+        {
+          "evidence_quote": "This repository contains a PEFT/LoRA adapter for `Qwen/Qwen2-VL-2B-Instruct`, fine-tuned on the AI2D subset of `HuggingFaceM4/the_cauldron`.",
+          "evidence_location": "Model card",
+          "source_url": "https://huggingface.co/DrMajid/qwen2-vl-2b-ai2d-qlora"
+        }
+      ]
+    }
+  ],
+  "license_analysis": {
+    "declared_license": {
+      "value": "apache-2.0",
+      "evidence_quote": null,
+      "evidence_location": "Model card license metadata",
+      "source_url": "https://huggingface.co/DrMajid/qwen2-vl-2b-ai2d-qlora"
+    },
+    "upstream_license": {
+      "value": null,
+      "evidence_quote": null,
+      "evidence_location": null,
+      "source_url": null
+    },
+    "license_metadata_mismatch": null,
+    "commercial_use_assessment": "review_required",
+    "findings": [
+      "Apache-2.0 자체는 상업 이용을 막지 않지만 데이터셋의 실제 권리자·수령 지갑은 문서만으로 확정하지 않음"
+    ]
+  },
+  "policy": {
+    "automated_status": null,
+    "reasons": []
+  },
+  "review": {
+    "reviewer_decision": null,
+    "reviewer_wallet": null,
+    "approved_at": null
+  },
+  "settlement": {
+    "recipients": [],
+    "escrow_bps": 0,
+    "total_bps": 0
+  },
+  "gold": {
+    "expected_status": "REVIEW",
+    "state_reason": "Apache-2.0 자체는 상업 이용을 막지 않지만 데이터셋의 실제 권리자·수령 지갑은 문서만으로 확정하지 않음",
+    "split": "eval",
+    "annotators": ["jihyeon"],
+    "annotation_minutes": null
+  }
+}
