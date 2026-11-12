@@ -64,6 +64,9 @@ class LLMExtractorTests(unittest.TestCase):
 
         self.assertIn("법적 판단", prompt)
         self.assertIn("JSON", prompt)
+        self.assertIn("연속된 원문 그대로", prompt)
+        self.assertIn("Markdown 링크를 제거하지 말고", prompt)
+        self.assertIn("띄어쓰기를 변경하지 마세요", prompt)
         self.assertIn(self.readme, prompt)
 
     def test_valid_json_generates_case_and_verifies_quotes(self) -> None:
@@ -123,7 +126,7 @@ class LLMExtractorTests(unittest.TestCase):
         self.assertIsNone(result["case"])
         self.assertIn("JSON이 아닙니다", result["errors"][0]["message"])
 
-    def test_quote_whitespace_is_normalized_for_matching(self) -> None:
+    def test_quote_whitespace_change_fails_closed(self) -> None:
         self.llm_response["components"][0]["evidence_quote"] = "based on\n base-org/base-model"
 
         result = extract_case_from_readme(
@@ -132,7 +135,9 @@ class LLMExtractorTests(unittest.TestCase):
             lambda prompt: json.dumps(self.llm_response),
         )
 
-        self.assertTrue(result["valid"], result["errors"])
+        self.assertFalse(result["valid"])
+        self.assertIsNone(result["case"])
+        self.assertIn("README 본문에 없습니다", result["errors"][0]["message"])
 
     def test_quote_missing_from_readme_fails_closed(self) -> None:
         self.llm_response["components"][0]["evidence_quote"] = "The model was created by someone else."

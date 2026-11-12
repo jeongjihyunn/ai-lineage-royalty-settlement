@@ -17,7 +17,7 @@ def build_extraction_prompt(readme: str, case_draft: dict[str, Any]) -> str:
         "다음 Hugging Face README 본문에서 모델 계보와 선언 라이선스의 사실 및 근거 문장만 추출하세요.\n"
         "법적 판단, 상업적 사용 가능성 판단, 권리자 추정, 지갑 주소 추정, 비율 계산, 정책 상태 결정은 하지 마세요.\n"
         "역할은 base_model, dataset, adapter만 사용하고, README에서 직접 확인되지 않는 항목은 생략하세요.\n"
-        "각 항목의 evidence_quote는 README에 있는 짧은 원문 문장을 그대로 복사하세요. 요약하거나 만들어내지 마세요.\n"
+        "각 항목의 evidence_quote는 README에서 연속된 원문 그대로 복사하세요. 요약·의역·Markdown 링크를 제거하지 말고, 띄어쓰기를 변경하지 마세요.\n"
         "설명이나 Markdown 코드 펜스 없이 아래 구조의 JSON 객체 하나만 출력하세요.\n"
         '{"components":[{"role":"base_model|dataset|adapter","name":"원문에 나온 이름",'
         '"evidence_quote":"README 원문 인용"}],'
@@ -37,10 +37,6 @@ def _error(path: str, message: str) -> dict[str, str]:
 
 def _failure(errors: list[dict[str, str]]) -> dict[str, Any]:
     return {"valid": False, "errors": errors, "case": None}
-
-
-def _normalize_whitespace(value: str) -> str:
-    return re.sub(r"\s+", " ", value).strip()
 
 
 def _decode_llm_json(response: str) -> tuple[Any, bool]:
@@ -85,7 +81,6 @@ def _parse_llm_response(response: Any, readme: str) -> tuple[dict[str, Any] | No
         errors.append(_error("components", "LLM JSON의 components는 배열이어야 합니다."))
         extracted_components = []
 
-    normalized_readme = _normalize_whitespace(readme)
     valid_components: list[dict[str, str]] = []
     for index, item in enumerate(extracted_components):
         path = f"components[{index}]"
@@ -103,7 +98,7 @@ def _parse_llm_response(response: Any, readme: str) -> tuple[dict[str, Any] | No
             errors.append(_error(f"{path}.name", "name은 비어 있지 않은 문자열이어야 합니다."))
         if not isinstance(quote, str) or not quote.strip():
             errors.append(_error(f"{path}.evidence_quote", "evidence_quote는 비어 있지 않은 문자열이어야 합니다."))
-        elif _normalize_whitespace(quote) not in normalized_readme:
+        elif quote not in readme:
             errors.append(_error(f"{path}.evidence_quote", "인용문이 README 본문에 없습니다."))
 
         if (
@@ -112,7 +107,7 @@ def _parse_llm_response(response: Any, readme: str) -> tuple[dict[str, Any] | No
             and name.strip()
             and isinstance(quote, str)
             and quote.strip()
-            and _normalize_whitespace(quote) in normalized_readme
+            and quote in readme
         ):
             valid_components.append(
                 {"role": role, "name": name.strip(), "evidence_quote": quote.strip()}
@@ -128,7 +123,7 @@ def _parse_llm_response(response: Any, readme: str) -> tuple[dict[str, Any] | No
         errors.append(_error("declared_license.value", "선언 라이선스는 비어 있지 않은 문자열 또는 null이어야 합니다."))
     if license_quote is not None and (not isinstance(license_quote, str) or not license_quote.strip()):
         errors.append(_error("declared_license.evidence_quote", "라이선스 evidence_quote는 비어 있지 않은 문자열 또는 null이어야 합니다."))
-    elif isinstance(license_quote, str) and _normalize_whitespace(license_quote) not in normalized_readme:
+    elif isinstance(license_quote, str) and license_quote not in readme:
         errors.append(_error("declared_license.evidence_quote", "라이선스 인용문이 README 본문에 없습니다."))
     if (license_value is None) != (license_quote is None):
         errors.append(_error("declared_license", "라이선스 value와 evidence_quote는 함께 제공되거나 모두 null이어야 합니다."))
