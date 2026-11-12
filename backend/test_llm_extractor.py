@@ -84,6 +84,45 @@ class LLMExtractorTests(unittest.TestCase):
         base_model = next(item for item in case["components"] if item["role"] == "base_model")
         self.assertEqual(base_model["evidence"][0]["source_url"], "https://huggingface.co/demo/model/raw/main/README.md")
 
+    def test_json_code_fence_is_parsed(self) -> None:
+        json_response = json.dumps(self.llm_response, ensure_ascii=False)
+        for fence in ("```json\n{}\n```", "```\n{}\n```"):
+            with self.subTest(fence=fence.splitlines()[0]):
+                response = fence.format(json_response)
+                result = extract_case_from_readme(
+                    self.readme,
+                    self.case_draft,
+                    lambda prompt: response,
+                )
+
+                self.assertTrue(result["valid"], result["errors"])
+
+    def test_json_with_surrounding_explanation_is_parsed(self) -> None:
+        response = (
+            "Here is the extracted information:\n"
+            f"{json.dumps(self.llm_response, ensure_ascii=False)}\n"
+            "This is the end of the response."
+        )
+
+        result = extract_case_from_readme(
+            self.readme,
+            self.case_draft,
+            lambda prompt: response,
+        )
+
+        self.assertTrue(result["valid"], result["errors"])
+
+    def test_malformed_json_fails_closed(self) -> None:
+        result = extract_case_from_readme(
+            self.readme,
+            self.case_draft,
+            lambda prompt: '{"components": [}',
+        )
+
+        self.assertFalse(result["valid"])
+        self.assertIsNone(result["case"])
+        self.assertIn("JSON이 아닙니다", result["errors"][0]["message"])
+
     def test_quote_whitespace_is_normalized_for_matching(self) -> None:
         self.llm_response["components"][0]["evidence_quote"] = "based on\n base-org/base-model"
 

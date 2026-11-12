@@ -43,13 +43,37 @@ def _normalize_whitespace(value: str) -> str:
     return re.sub(r"\s+", " ", value).strip()
 
 
+def _decode_llm_json(response: str) -> tuple[Any, bool]:
+    text = response.strip()
+    code_block = re.fullmatch(
+        r"```(?:json)?[ \t]*\r?\n?(.*?)\r?\n?```",
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if code_block is not None:
+        text = code_block.group(1).strip()
+
+    try:
+        return json.loads(text), True
+    except json.JSONDecodeError:
+        pass
+
+    object_start = text.find("{")
+    if object_start == -1:
+        return None, False
+    try:
+        parsed, _ = json.JSONDecoder().raw_decode(text, object_start)
+    except json.JSONDecodeError:
+        return None, False
+    return parsed, True
+
+
 def _parse_llm_response(response: Any, readme: str) -> tuple[dict[str, Any] | None, list[dict[str, str]]]:
     if not isinstance(response, str):
         return None, [_error("llm_response", "LLM 응답은 JSON 문자열이어야 합니다.")]
 
-    try:
-        parsed = json.loads(response)
-    except (json.JSONDecodeError, TypeError):
+    parsed, is_json = _decode_llm_json(response)
+    if not is_json:
         return None, [_error("llm_response", "LLM 응답이 올바른 JSON이 아닙니다.")]
 
     if not isinstance(parsed, dict):
