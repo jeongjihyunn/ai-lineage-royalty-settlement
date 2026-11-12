@@ -14,12 +14,14 @@ import tempfile
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(ROOT / ".env", override=False)
 sys.path.insert(0, str(ROOT / "backend"))
 
 import policy_engine as pe  # noqa: E402
