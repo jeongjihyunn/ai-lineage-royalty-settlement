@@ -27,6 +27,7 @@ def _build_openai_call(model: str, api_key: str) -> Callable[[str], str]:
             response = client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
+                temperature=0,
             )
             content = response.choices[0].message.content
         except Exception:
@@ -55,6 +56,7 @@ def _build_anthropic_call(model: str, api_key: str) -> Callable[[str], str]:
                 model=model,
                 max_tokens=4096,
                 messages=[{"role": "user", "content": prompt}],
+                temperature=0,
             )
             text = "".join(
                 block.text
