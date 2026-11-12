@@ -45,17 +45,24 @@ def _license_value(case: Any, license_type: str) -> str | None:
     return _normalize_text(entry.get("value"))
 
 
-def _citation_quotes(value: Any) -> list[str]:
+def _readme_citation_quotes(case: Any) -> list[str]:
+    """README 원문과 직접 대조할 수 있는 근거 문장만 반환한다.
+
+    Hugging Face API 메타데이터 근거는 README 본문이 아닌 API 응답에서 온다.
+    따라서 이 지표에서는 ``evidence_location``이 ``README 본문``인 인용만
+    분모에 넣는다.
+    """
     quotes: list[str] = []
-    if isinstance(value, dict):
-        for key, child in value.items():
-            if key == "evidence_quote" and isinstance(child, str) and child.strip():
-                quotes.append(child)
-            else:
-                quotes.extend(_citation_quotes(child))
-    elif isinstance(value, list):
-        for child in value:
-            quotes.extend(_citation_quotes(child))
+    for component in _sequence(_mapping(case).get("components")):
+        for evidence in _sequence(_mapping(component).get("evidence")):
+            evidence = _mapping(evidence)
+            quote = evidence.get("evidence_quote")
+            if (
+                evidence.get("evidence_location") == "README 본문"
+                and isinstance(quote, str)
+                and quote.strip()
+            ):
+                quotes.append(quote)
     return quotes
 
 
@@ -115,7 +122,7 @@ def _case_result(case_input: Any, index: int) -> dict[str, Any]:
     source_text = case_input.get("source_text")
     if not isinstance(source_text, str):
         source_text = prediction.get("source_text")
-    citation_quotes = _citation_quotes(predicted_case)
+    citation_quotes = _readme_citation_quotes(predicted_case)
     normalized_source = _normalize_text(source_text)
     citation_denominator = len(citation_quotes) if normalized_source is not None else 0
     citation_numerator = (

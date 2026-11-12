@@ -3,11 +3,11 @@ import unittest
 from backend.evaluation_metrics import evaluate_cases
 
 
-def component(role, name, quote="Evidence quote."):
+def component(role, name, quote="Evidence quote.", location="README 본문"):
     return {
         "role": role,
         "name": name,
-        "evidence": [{"evidence_quote": quote}],
+        "evidence": [{"evidence_quote": quote, "evidence_location": location}],
     }
 
 
@@ -108,6 +108,28 @@ class EvaluationMetricsTests(unittest.TestCase):
         self.assertEqual(result["citation_grounding_rate"], 0.5)
         self.assertEqual(result["numerators"]["citation_grounding_rate"], 1)
         self.assertEqual(result["denominators"]["citation_grounding_rate"], 2)
+
+    def test_api_metadata_evidence_is_excluded_from_readme_citation_metric(self):
+        gold = fixture()
+        predicted = prediction(
+            [
+                component("adapter", "owner/model", "This is cited."),
+                component(
+                    "dataset",
+                    "org/data",
+                    "cardData.license: apache-2.0",
+                    "Hugging Face API metadata",
+                ),
+            ]
+        )
+
+        result = evaluate_cases(
+            [{"gold": gold, "prediction": predicted, "source_text": "This is cited."}]
+        )
+
+        self.assertEqual(result["citation_grounding_rate"], 1.0)
+        self.assertEqual(result["numerators"]["citation_grounding_rate"], 1)
+        self.assertEqual(result["denominators"]["citation_grounding_rate"], 1)
 
     def test_missing_source_text_excludes_citations(self):
         result = evaluate_cases(
