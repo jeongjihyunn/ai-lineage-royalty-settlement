@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from backend.extraction_validator import validate_case
 from backend.hf_metadata import build_case_draft, fetch_model_metadata, parse_model_id
+from backend.policy_engine import evaluate
 
 
 class ParseModelIdTests(unittest.TestCase):
@@ -36,7 +37,22 @@ class HuggingFaceMetadataTests(unittest.TestCase):
 
     @patch("backend.hf_metadata.urlopen")
     def test_builds_case_from_mocked_api_metadata(self, mock_urlopen) -> None:
-        mock_urlopen.return_value = BytesIO(json.dumps(self.metadata).encode("utf-8"))
+        component_metadata = {
+            "https://huggingface.co/api/models/base-owner/base-model": {
+                "cardData": {"license": "mit"}
+            },
+            "https://huggingface.co/api/datasets/data-owner/sample-dataset": {
+                "cardData": {"license": "cc-by-4.0"}
+            },
+        }
+
+        def mocked_open(request, timeout):
+            payload = self.metadata if request.full_url == (
+                "https://huggingface.co/api/models/sample-owner/sample-model"
+            ) else component_metadata[request.full_url]
+            return BytesIO(json.dumps(payload).encode("utf-8"))
+
+        mock_urlopen.side_effect = mocked_open
 
         case = build_case_draft("https://huggingface.co/sample-owner/sample-model", checked_at="2026-11-03")
 
@@ -53,13 +69,47 @@ class HuggingFaceMetadataTests(unittest.TestCase):
         dataset = next(item for item in case["components"] if item["role"] == "dataset")
         self.assertEqual(base_model["name"], "base-owner/base-model")
         self.assertEqual(dataset["name"], "data-owner/sample-dataset")
+        self.assertEqual(base_model["license_id"], "mit")
+        self.assertEqual(dataset["license_id"], "cc-by-4.0")
+        self.assertEqual(
+            base_model["evidence"][-1]["source_url"],
+            "https://huggingface.co/api/models/base-owner/base-model",
+        )
         self.assertEqual(base_model["evidence"][0]["source_url"], "https://huggingface.co/api/models/sample-owner/sample-model")
         self.assertIn("base-owner/base-model", base_model["evidence"][0]["evidence_quote"])
         self.assertEqual(case["components"][0]["publisher"], "sample-owner")
         self.assertTrue(validate_case(case)["valid"], validate_case(case)["errors"])
 
-        request = mock_urlopen.call_args.args[0]
-        self.assertEqual(request.full_url, "https://huggingface.co/api/models/sample-owner/sample-model")
+        requested_urls = [call.args[0].full_url for call in mock_urlopen.call_args_list]
+        self.assertEqual(
+            requested_urls,
+            [
+                "https://huggingface.co/api/models/sample-owner/sample-model",
+                "https://huggingface.co/api/models/base-owner/base-model",
+                "https://huggingface.co/api/datasets/data-owner/sample-dataset",
+            ],
+        )
+
+    @patch("backend.hf_metadata.urlopen")
+    def test_subcomponent_lookup_failure_or_missing_license_stays_null_and_reviews(self, mock_urlopen) -> None:
+        def mocked_open(request, timeout):
+            if request.full_url == "https://huggingface.co/api/models/sample-owner/sample-model":
+                return BytesIO(json.dumps(self.metadata).encode("utf-8"))
+            if request.full_url == "https://huggingface.co/api/models/base-owner/base-model":
+                from urllib.error import URLError
+
+                raise URLError("offline")
+            return BytesIO(json.dumps({"cardData": {}}).encode("utf-8"))
+
+        mock_urlopen.side_effect = mocked_open
+
+        case = build_case_draft("sample-owner/sample-model", checked_at="2026-11-03")
+
+        base_model = next(item for item in case["components"] if item["role"] == "base_model")
+        dataset = next(item for item in case["components"] if item["role"] == "dataset")
+        self.assertIsNone(base_model["license_id"])
+        self.assertIsNone(dataset["license_id"])
+        self.assertEqual(evaluate(case, {})["status"], "REVIEW")
 
     @patch("backend.hf_metadata.urlopen")
     def test_http_error_is_translated_to_korean(self, mock_urlopen) -> None:

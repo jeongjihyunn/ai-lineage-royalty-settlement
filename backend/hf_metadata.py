@@ -35,17 +35,18 @@ def parse_model_id(model_id_or_url: str) -> str:
     return "/".join(parts)
 
 
-def fetch_model_metadata(model_id: str) -> dict[str, Any]:
-    """Fetch one public model record from the Hugging Face API."""
-    normalized_model_id = parse_model_id(model_id)
-    api_url = f"{_HF_BASE_URL}/api/models/{normalized_model_id}"
+def _fetch_repository_metadata(repository_type: str, repository_id: str, description: str) -> dict[str, Any]:
+    normalized_repository_id = parse_model_id(repository_id)
+    api_url = f"{_HF_BASE_URL}/api/{repository_type}/{normalized_repository_id}"
     request = Request(api_url, headers={"Accept": "application/json"})
 
     try:
         with urlopen(request, timeout=_REQUEST_TIMEOUT_SECONDS) as response:
             payload = response.read()
     except HTTPError as error:
-        raise ValueError(f"Hugging Face API HTTP 오류({error.code}): 모델 메타데이터를 가져오지 못했습니다.") from error
+        raise ValueError(
+            f"Hugging Face API HTTP 오류({error.code}): {description} 메타데이터를 가져오지 못했습니다."
+        ) from error
     except (URLError, TimeoutError, OSError) as error:
         raise ValueError("Hugging Face API에 연결할 수 없습니다.") from error
 
@@ -59,6 +60,16 @@ def fetch_model_metadata(model_id: str) -> dict[str, Any]:
     return metadata
 
 
+def fetch_model_metadata(model_id: str) -> dict[str, Any]:
+    """Fetch one public model record from the Hugging Face API."""
+    return _fetch_repository_metadata("models", model_id, "모델")
+
+
+def fetch_dataset_metadata(dataset_id: str) -> dict[str, Any]:
+    """Fetch one public dataset record from the Hugging Face API."""
+    return _fetch_repository_metadata("datasets", dataset_id, "데이터셋")
+
+
 def _metadata_values(value: Any) -> list[str]:
     if isinstance(value, str):
         values = [value]
@@ -67,6 +78,30 @@ def _metadata_values(value: Any) -> list[str]:
     else:
         return []
     return [item.strip() for item in values if isinstance(item, str) and item.strip()]
+
+
+def _component_license_metadata(
+    repository_id: str, repository_type: str
+) -> tuple[str | None, list[dict[str, str]]]:
+    try:
+        normalized_repository_id = parse_model_id(repository_id)
+        if repository_type == "models":
+            metadata = fetch_model_metadata(normalized_repository_id)
+        else:
+            metadata = fetch_dataset_metadata(normalized_repository_id)
+    except ValueError:
+        return None, []
+
+    card_data = metadata.get("cardData")
+    if not isinstance(card_data, dict):
+        return None, []
+    license_values = _metadata_values(card_data.get("license"))
+    if not license_values:
+        return None, []
+
+    api_url = f"{_HF_BASE_URL}/api/{repository_type}/{normalized_repository_id}"
+    license_id = license_values[0]
+    return license_id, [_evidence("cardData.license", license_id, api_url)]
 
 
 def _evidence(field: str, value: str, api_url: str) -> dict[str, str]:
@@ -131,22 +166,33 @@ def build_case_draft(model_id_or_url: str, checked_at: str | None = None) -> dic
             license_id=declared_license,
         )
     ]
+    component_license_cache: dict[tuple[str, str], tuple[str | None, list[dict[str, str]]]] = {}
     for base_model in base_models:
+        cache_key = ("models", base_model)
+        if cache_key not in component_license_cache:
+            component_license_cache[cache_key] = _component_license_metadata(base_model, "models")
+        license_id, license_evidence = component_license_cache[cache_key]
         components.append(
             _component(
                 "base_model",
                 base_model,
-                [_evidence("cardData.base_model", base_model, api_url)],
+                [_evidence("cardData.base_model", base_model, api_url), *license_evidence],
                 relationship="base_for",
+                license_id=license_id,
             )
         )
     for dataset in datasets:
+        cache_key = ("datasets", dataset)
+        if cache_key not in component_license_cache:
+            component_license_cache[cache_key] = _component_license_metadata(dataset, "datasets")
+        license_id, license_evidence = component_license_cache[cache_key]
         components.append(
             _component(
                 "dataset",
                 dataset,
-                [_evidence("cardData.datasets", dataset, api_url)],
+                [_evidence("cardData.datasets", dataset, api_url), *license_evidence],
                 relationship="trained_on",
+                license_id=license_id,
             )
         )
 
