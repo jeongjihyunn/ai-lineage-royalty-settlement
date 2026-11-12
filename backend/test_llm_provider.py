@@ -46,7 +46,6 @@ class LLMProviderTests(unittest.TestCase):
         client.chat.completions.create.assert_called_once_with(
             model="test-model",
             messages=[{"role": "user", "content": "테스트 프롬프트"}],
-            temperature=0,
         )
 
     def test_anthropic_provider_returns_text_blocks(self) -> None:
@@ -68,7 +67,6 @@ class LLMProviderTests(unittest.TestCase):
             model="test-model",
             max_tokens=4096,
             messages=[{"role": "user", "content": "테스트 프롬프트"}],
-            temperature=0,
         )
 
     def test_missing_provider_raises_korean_value_error(self) -> None:
