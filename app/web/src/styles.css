@@ -63,6 +63,20 @@ h2 { font-size: 1.25rem; font-weight: 700; margin: 0 0 14px; letter-spacing: -0.
 .upload-badge { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--green); color: white; font-weight: 800; }
 .upload-badge.failed { background: var(--red); }
 
+.extract { display: flex; flex-direction: column; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.extract-row { display: flex; gap: 10px; }
+.text-input {
+  flex: 1; min-width: 0; padding: 13px 16px; border-radius: 12px; border: 1px solid var(--line); background: white;
+  font: inherit; font-size: 0.95rem; color: var(--ink); font-family: ui-monospace, Menlo, monospace;
+}
+.text-input:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.14); }
+.text-input:disabled { color: var(--mute); }
+.primary.extract-button { min-width: 120px; background: var(--purple); }
+.primary.extract-button:disabled:not(:has(.spinner)) { opacity: 0.45; }
+.extract-note { margin: 0; color: var(--sub); font-size: 0.85rem; }
+.extract-note.ok { color: var(--green); font-weight: 600; }
+.extract-errors { margin: 0; padding: 10px 14px 10px 30px; border-radius: 12px; background: #fef2f2; color: var(--red); font-size: 0.88rem; line-height: 1.6; }
+
 .examples { display: flex; flex-direction: column; gap: 12px; justify-content: center; }
 .examples-title { color: var(--sub); font-size: 0.85rem; }
 .select { position: relative; }
@@ -222,6 +236,7 @@ blockquote small { display: block; color: var(--mute); font-size: 0.75rem; margi
   .claims li { grid-template-columns: 10px 1fr auto; }
   .legend .wallet, .claims .wallet { display: none; }
   .claims .claim { grid-column: 2 / -1; }
+  .extract-row { flex-direction: column; }
 }
 
 @media (prefers-reduced-motion: reduce) {

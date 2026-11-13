@@ -96,6 +96,7 @@ export default function App() {
   const [review, setReview] = useState(null);
   const [error, setError] = useState(null);
   const [upload, setUpload] = useState(null); // { name, state: "loading" | "done" | "error" }
+  const [extract, setExtract] = useState(null); // { state: "loading" | "done" | "error", errors }
   const [registration, setRegistration] = useState(null);
   const [progress, setProgress] = useState({}); // 체인 등록·입금·수령 여부. 다른 예제의 늦은 응답은 key로 거른다.
 
@@ -124,11 +125,13 @@ export default function App() {
 
   function pickExample(id) {
     setUpload(null);
+    setExtract(null);
     load(fetchJson(`/api/examples/${id}`), { kind: "example", id });
   }
 
   async function pickFile(file) {
     if (!file) return;
+    setExtract(null);
     setUpload({ name: file.name, size: file.size, state: "loading" });
     const text = await file.text();
     const ok = await load(
@@ -136,6 +139,32 @@ export default function App() {
       { kind: "file", name: file.name, text },
     );
     setUpload({ name: file.name, size: file.size, state: ok ? "done" : "error" });
+  }
+
+  // AI가 Hugging Face 문서를 읽어 만든 모델 정보로, 파일을 올린 것과 같은 판정 화면을 보여준다.
+  async function extractModel(model) {
+    setUpload(null);
+    setError(null);
+    setReview(null);
+    setSource(null);
+    setExtract({ state: "loading" });
+    const res = await fetch("/api/extract", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model }),
+    }).catch(() => null);
+    const body = await res?.json().catch(() => ({}));
+    if (!body?.valid) {
+      const errors = body?.errors?.length ? body.errors : [{ message: res ? "요청 실패" : "서버 연결 실패" }];
+      setExtract({ state: "error", errors });
+      return;
+    }
+    const text = JSON.stringify(body.case);
+    const ok = await load(
+      fetchJson("/api/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: text }),
+      { kind: "file", name: model, text },
+    );
+    setExtract({ state: ok ? "done" : "error", errors: [] });
   }
 
   const key = source ? `${source.kind}:${source.id || source.name}` : "none";
@@ -166,8 +195,10 @@ export default function App() {
           examples={examples}
           source={source}
           upload={upload}
+          extract={extract}
           onExample={pickExample}
           onFile={pickFile}
+          onExtract={extractModel}
         />
 
         <Steps states={stepStates} />
@@ -198,12 +229,14 @@ export default function App() {
   );
 }
 
-function Input({ examples, source, upload, onExample, onFile }) {
+function Input({ examples, source, upload, extract, onExample, onFile, onExtract }) {
   const fileRef = useRef(null);
   const [over, setOver] = useState(false);
 
   return (
     <section className="input glass">
+      <Extract extract={extract} onExtract={onExtract} />
+
       <div
         className={`drop ${over ? "over" : ""}`}
         role="button"
@@ -249,6 +282,47 @@ function Input({ examples, source, upload, onExample, onFile }) {
         <ExampleSelect examples={examples} value={source?.kind === "example" ? source.id : null} onChange={onExample} />
       </div>
     </section>
+  );
+}
+
+function Extract({ extract, onExtract }) {
+  const [model, setModel] = useState("");
+  const loading = extract?.state === "loading";
+
+  return (
+    <form
+      className="extract"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (model.trim()) onExtract(model.trim());
+      }}
+    >
+      <label className="examples-title" htmlFor="hf-model">Hugging Face 모델</label>
+      <div className="extract-row">
+        <input
+          id="hf-model"
+          className="text-input"
+          value={model}
+          placeholder="HuggingFaceH4/zephyr-7b-beta"
+          spellCheck={false}
+          autoComplete="off"
+          disabled={loading}
+          onChange={(e) => setModel(e.target.value)}
+        />
+        <button className="primary extract-button" disabled={loading || !model.trim()}>
+          {loading ? <span className="spinner" /> : "AI로 읽기"}
+        </button>
+      </div>
+      {loading && <p className="extract-note">문서 읽는 중</p>}
+      {extract?.state === "done" && <p className="extract-note ok">✓ 원문 인용 확인됨</p>}
+      {extract?.state === "error" && extract.errors.length > 0 && (
+        <ul className="extract-errors">
+          {extract.errors.map((e, i) => (
+            <li key={i} title={e.path}>{e.message}</li>
+          ))}
+        </ul>
+      )}
+    </form>
   );
 }
 

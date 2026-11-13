@@ -167,7 +167,8 @@ def review(case, raw):
 
 @app.get("/api/examples")
 def list_examples():
-    return [{"id": p.stem, "label": EXAMPLES.get(p.stem, p.stem)} for p in sorted(FIXTURES_DIR.glob("*.json"))]
+    # 05~09는 AI 추출 평가용 정답표라 시연 목록에는 넣지 않는다.
+    return [{"id": p.stem, "label": EXAMPLES[p.stem]} for p in sorted(FIXTURES_DIR.glob("*.json")) if p.stem in EXAMPLES]
 
 
 def load_example(example_id):
