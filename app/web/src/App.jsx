@@ -13,7 +13,7 @@ const ROLES = {
   dataset: { label: "데이터셋", color: "var(--cyan)" },
   adapter: { label: "어댑터", color: "var(--yellow)" },
 };
-const STEPS = ["모델 정보 읽기", "정산 판정", "사람 승인", "블록체인 등록", "사용료 입금", "권리자 수령"];
+const STEPS = ["모델 정보 읽기", "정산 판정", "사람 승인", "블록체인 등록", "사용료 입금", "자동 분배"];
 const APPROVABLE = ["APPROVED", "APPROVED_WITH_ESCROW"];
 const ALREADY = "ALREADY_REGISTERED";
 const OK_REASON = "라이선스·근거·수령 지갑 확인됨";
@@ -95,7 +95,7 @@ export default function App() {
   const [source, setSource] = useState(null); // { kind: "example", id } | { kind: "file", name, text }
   const [review, setReview] = useState(null);
   const [error, setError] = useState(null);
-  const [upload, setUpload] = useState(null); // { name, state: "loading" | "done" | "error" }
+  const [extract, setExtract] = useState(null); // { state: "loading" | "done" | "error", errors }
   const [registration, setRegistration] = useState(null);
   const [progress, setProgress] = useState({}); // 체인 등록·입금·수령 여부. 다른 예제의 늦은 응답은 key로 거른다.
 
@@ -123,19 +123,33 @@ export default function App() {
   }
 
   function pickExample(id) {
-    setUpload(null);
+    setExtract(null);
     load(fetchJson(`/api/examples/${id}`), { kind: "example", id });
   }
 
-  async function pickFile(file) {
-    if (!file) return;
-    setUpload({ name: file.name, size: file.size, state: "loading" });
-    const text = await file.text();
+  // AI가 Hugging Face 문서를 읽어 만든 모델 정보로 판정 화면을 보여준다.
+  async function extractModel(model) {
+    setError(null);
+    setReview(null);
+    setSource(null);
+    setExtract({ state: "loading" });
+    const res = await fetch("/api/extract", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model }),
+    }).catch(() => null);
+    const body = await res?.json().catch(() => ({}));
+    if (!body?.valid) {
+      const errors = body?.errors?.length ? body.errors : [{ message: res ? "요청 실패" : "서버 연결 실패" }];
+      setExtract({ state: "error", errors });
+      return;
+    }
+    const text = JSON.stringify(body.case);
     const ok = await load(
       fetchJson("/api/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: text }),
-      { kind: "file", name: file.name, text },
+      { kind: "file", name: model, text },
     );
-    setUpload({ name: file.name, size: file.size, state: ok ? "done" : "error" });
+    setExtract({ state: ok ? "done" : "error", errors: [] });
   }
 
   const key = source ? `${source.kind}:${source.id || source.name}` : "none";
@@ -150,7 +164,7 @@ export default function App() {
         review.register.ok ? (registered ? "done" : "now") : "blocked",
         registered ? "done" : "",
         registered ? (chain.deposited ? "done" : "now") : "",
-        registered && chain.deposited ? (chain.claimed ? "done" : "now") : "",
+        registered && chain.deposited ? "done" : "",
       ];
   const locked = APPROVABLE.includes(status) && !review?.tamper && !registered;
 
@@ -165,9 +179,9 @@ export default function App() {
         <Input
           examples={examples}
           source={source}
-          upload={upload}
+          extract={extract}
           onExample={pickExample}
-          onFile={pickFile}
+          onExtract={extractModel}
         />
 
         <Steps states={stepStates} />
@@ -198,57 +212,57 @@ export default function App() {
   );
 }
 
-function Input({ examples, source, upload, onExample, onFile }) {
-  const fileRef = useRef(null);
-  const [over, setOver] = useState(false);
-
+function Input({ examples, source, extract, onExample, onExtract }) {
   return (
     <section className="input glass">
-      <div
-        className={`drop ${over ? "over" : ""}`}
-        role="button"
-        tabIndex={0}
-        onClick={() => fileRef.current?.click()}
-        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && fileRef.current?.click()}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setOver(true);
-        }}
-        onDragLeave={() => setOver(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setOver(false);
-          onFile(e.dataTransfer.files[0]);
-        }}
-      >
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".json,application/json"
-          hidden
-          onChange={(e) => {
-            onFile(e.target.files[0]);
-            e.target.value = "";
-          }}
-        />
-        <AnimatePresence mode="wait">
-          {upload ? (
-            <UploadRow key={upload.name + upload.state} upload={upload} />
-          ) : (
-            <motion.div key="empty" className="drop-empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <span className="drop-icon">↑</span>
-              <strong>모델 정보 파일을 끌어다 놓기</strong>
-              <span>또는 클릭해서 JSON 파일 고르기</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      <Extract extract={extract} onExtract={onExtract} />
 
       <div className="examples">
         <span className="examples-title" id="example-label">팀이 만든 예제</span>
         <ExampleSelect examples={examples} value={source?.kind === "example" ? source.id : null} onChange={onExample} />
       </div>
     </section>
+  );
+}
+
+function Extract({ extract, onExtract }) {
+  const [model, setModel] = useState("");
+  const loading = extract?.state === "loading";
+
+  return (
+    <form
+      className="extract"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (model.trim()) onExtract(model.trim());
+      }}
+    >
+      <label className="examples-title" htmlFor="hf-model">Hugging Face 모델</label>
+      <div className="extract-row">
+        <input
+          id="hf-model"
+          className="text-input"
+          value={model}
+          placeholder="HuggingFaceH4/zephyr-7b-beta"
+          spellCheck={false}
+          autoComplete="off"
+          disabled={loading}
+          onChange={(e) => setModel(e.target.value)}
+        />
+        <button className="primary extract-button" disabled={loading || !model.trim()}>
+          {loading ? <span className="spinner" /> : "AI로 읽기"}
+        </button>
+      </div>
+      {loading && <p className="extract-note">문서 읽는 중</p>}
+      {extract?.state === "done" && <p className="extract-note ok">✓ 원문 인용 확인됨</p>}
+      {extract?.state === "error" && extract.errors.length > 0 && (
+        <ul className="extract-errors">
+          {extract.errors.map((e, i) => (
+            <li key={i} title={e.path}>{e.message}</li>
+          ))}
+        </ul>
+      )}
+    </form>
   );
 }
 
@@ -312,40 +326,6 @@ function ExampleSelect({ examples, value, onChange }) {
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function UploadRow({ upload }) {
-  const done = upload.state === "done";
-  const failed = upload.state === "error";
-  return (
-    <motion.div className="upload-row" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-      <span className="file-icon">{"{ }"}</span>
-      <div className="upload-main">
-        <div className="upload-name">{upload.name}</div>
-        <div className="upload-sub">{(upload.size / 1024).toFixed(1)} KB</div>
-        <div className="track">
-          <motion.div
-            className={`fill ${failed ? "failed" : ""}`}
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: upload.state === "loading" ? 0.85 : 1 }}
-            transition={{ duration: upload.state === "loading" ? 1.2 : 0.3, ease }}
-          />
-        </div>
-      </div>
-      <AnimatePresence>
-        {(done || failed) && (
-          <motion.span
-            className={`upload-badge ${failed ? "failed" : ""}`}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 420, damping: 18, delay: 0.25 }}
-          >
-            {failed ? "!" : "✓"}
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </motion.div>
   );
 }
 
@@ -454,11 +434,10 @@ function Shares({ result }) {
     key: `${r.role}-${r.name}`,
     label: `${role(r.role).label} · ${r.name}`,
     color: role(r.role).color,
-    wallet: shortWallet(r.wallet),
     pct: r.share_bps / 100,
   }));
   if (result.escrow_bps) {
-    rows.push({ key: "escrow", label: "따로 보관 · 지갑을 찾으면 지급", color: "var(--mute)", wallet: "—", pct: result.escrow_bps / 100, escrow: true });
+    rows.push({ key: "escrow", label: "따로 보관 · 지갑을 찾으면 지급", color: "var(--mute)", pct: result.escrow_bps / 100, escrow: true });
   }
 
   // 화면에 보일 때 왼쪽부터 한 칸씩 차오른다.
@@ -501,7 +480,6 @@ function Shares({ result }) {
           >
             <i style={{ background: r.color }} />
             <span className="legend-label">{r.label}</span>
-            <span className="wallet">{r.wallet}</span>
             <strong><Ticker value={r.pct} start={seen} /></strong>
           </li>
         ))}
@@ -623,9 +601,8 @@ function TxResult({ result, done }) {
 function Payment({ review, source, registration, locked, onProgress }) {
   const hash = review.tamper ? null : review.model.hash;
   const [amount, setAmount] = useState("0.001");
-  const [pending, setPending] = useState(null); // "deposit" | 권리자 지갑 주소
+  const [pending, setPending] = useState(null); // "deposit" | "release"
   const [deposited, setDeposited] = useState(null);
-  const [claims, setClaims] = useState({});
   const [settlement, setSettlement] = useState(null);
   const [released, setReleased] = useState(null);
 
@@ -635,14 +612,13 @@ function Payment({ review, source, registration, locked, onProgress }) {
     if (hash) refresh();
   }, [hash, registration]);
 
-  // 이번 화면에서 입금했거나 체인에 받을 돈이 남아 있으면 입금 단계는 끝난 것으로 본다.
+  // 이번 화면에서 입금했거나 체인에 받을 돈이 남아 있으면 입금·분배 단계는 끝난 것으로 본다.
   useEffect(() => {
     onProgress({
       registered: !!settlement?.registered,
       deposited: !!deposited?.ok || !!settlement?.recipients?.some((r) => r.claimable_eth !== "0") || (settlement?.escrow_eth ?? "0") !== "0",
-      claimed: Object.values(claims).some((c) => c?.ok),
     });
-  }, [settlement, deposited, claims]);
+  }, [settlement, deposited]);
 
   async function send() {
     setPending("deposit");
@@ -656,20 +632,6 @@ function Payment({ review, source, registration, locked, onProgress }) {
       if (hash) await refresh();
     } catch (e) {
       setDeposited({ ok: false, error_message: e.message });
-    } finally {
-      setPending(null);
-    }
-  }
-
-  async function claim(row) {
-    setPending(row.wallet);
-    setClaims((c) => ({ ...c, [row.wallet]: null }));
-    try {
-      const result = await fetchJson(`/api/settlement/${hash}/claim/${row.holder}`, { method: "POST" });
-      setClaims((c) => ({ ...c, [row.wallet]: result }));
-      await refresh();
-    } catch (e) {
-      setClaims((c) => ({ ...c, [row.wallet]: { ok: false, error_message: e.message } }));
     } finally {
       setPending(null);
     }
@@ -709,7 +671,7 @@ function Payment({ review, source, registration, locked, onProgress }) {
 
       {settlement?.registered && (
         <section className="block">
-          <h2>권리자 수령</h2>
+          <h2>자동 분배된 금액</h2>
           <ul className="claims">
             {settlement.recipients.map((row) => {
               const info = names[row.wallet.toLowerCase()];
@@ -717,16 +679,7 @@ function Payment({ review, source, registration, locked, onProgress }) {
                 <li key={row.wallet}>
                   <i style={{ background: role(info?.role).color }} />
                   <span className="legend-label">{info ? `${role(info.role).label} · ${info.name}` : `보관금 수령 · ${row.holder}`}</span>
-                  <span className="wallet">{shortWallet(row.wallet)}</span>
                   <strong title={`${row.claimable_eth} ETH`}>{shortEth(row.claimable_eth)} ETH</strong>
-                  <button
-                    className="claim"
-                    disabled={!!pending || !row.holder || row.claimable_eth === "0"}
-                    onClick={() => claim(row)}
-                  >
-                    {pending === row.wallet ? <span className="spinner dark" /> : "받기"}
-                  </button>
-                  {claims[row.wallet] && <div className="claim-result"><TxResult result={claims[row.wallet]} done="수령 완료" /></div>}
                 </li>
               );
             })}
@@ -734,7 +687,6 @@ function Payment({ review, source, registration, locked, onProgress }) {
               <li>
                 <i style={{ background: "var(--mute)" }} />
                 <span className="legend-label">따로 보관{review.escrow_holder && ` · ${review.escrow_holder}에게 지급 예정`}</span>
-                <span className="wallet">—</span>
                 <strong title={`${settlement.escrow_eth} ETH`}>{shortEth(settlement.escrow_eth)} ETH</strong>
                 {review.escrow_holder ? (
                   <button className="claim" disabled={!!pending} onClick={release}>
@@ -745,6 +697,11 @@ function Payment({ review, source, registration, locked, onProgress }) {
             )}
           </ul>
           <TxResult result={released} done="보관금 지급 완료" />
+          {settlement.contract_address && (
+            <a className="chain-link" href={`https://sepolia.etherscan.io/address/${settlement.contract_address}`} target="_blank" rel="noreferrer">
+              Etherscan에서 수령 기록 보기
+            </a>
+          )}
         </section>
       )}
     </>
