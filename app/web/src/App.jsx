@@ -95,7 +95,6 @@ export default function App() {
   const [source, setSource] = useState(null); // { kind: "example", id } | { kind: "file", name, text }
   const [review, setReview] = useState(null);
   const [error, setError] = useState(null);
-  const [upload, setUpload] = useState(null); // { name, state: "loading" | "done" | "error" }
   const [extract, setExtract] = useState(null); // { state: "loading" | "done" | "error", errors }
   const [registration, setRegistration] = useState(null);
   const [progress, setProgress] = useState({}); // 체인 등록·입금·수령 여부. 다른 예제의 늦은 응답은 key로 거른다.
@@ -124,26 +123,12 @@ export default function App() {
   }
 
   function pickExample(id) {
-    setUpload(null);
     setExtract(null);
     load(fetchJson(`/api/examples/${id}`), { kind: "example", id });
   }
 
-  async function pickFile(file) {
-    if (!file) return;
-    setExtract(null);
-    setUpload({ name: file.name, size: file.size, state: "loading" });
-    const text = await file.text();
-    const ok = await load(
-      fetchJson("/api/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: text }),
-      { kind: "file", name: file.name, text },
-    );
-    setUpload({ name: file.name, size: file.size, state: ok ? "done" : "error" });
-  }
-
-  // AI가 Hugging Face 문서를 읽어 만든 모델 정보로, 파일을 올린 것과 같은 판정 화면을 보여준다.
+  // AI가 Hugging Face 문서를 읽어 만든 모델 정보로 판정 화면을 보여준다.
   async function extractModel(model) {
-    setUpload(null);
     setError(null);
     setReview(null);
     setSource(null);
@@ -194,10 +179,8 @@ export default function App() {
         <Input
           examples={examples}
           source={source}
-          upload={upload}
           extract={extract}
           onExample={pickExample}
-          onFile={pickFile}
           onExtract={extractModel}
         />
 
@@ -229,53 +212,10 @@ export default function App() {
   );
 }
 
-function Input({ examples, source, upload, extract, onExample, onFile, onExtract }) {
-  const fileRef = useRef(null);
-  const [over, setOver] = useState(false);
-
+function Input({ examples, source, extract, onExample, onExtract }) {
   return (
     <section className="input glass">
       <Extract extract={extract} onExtract={onExtract} />
-
-      <div
-        className={`drop ${over ? "over" : ""}`}
-        role="button"
-        tabIndex={0}
-        onClick={() => fileRef.current?.click()}
-        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && fileRef.current?.click()}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setOver(true);
-        }}
-        onDragLeave={() => setOver(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setOver(false);
-          onFile(e.dataTransfer.files[0]);
-        }}
-      >
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".json,application/json"
-          hidden
-          onChange={(e) => {
-            onFile(e.target.files[0]);
-            e.target.value = "";
-          }}
-        />
-        <AnimatePresence mode="wait">
-          {upload ? (
-            <UploadRow key={upload.name + upload.state} upload={upload} />
-          ) : (
-            <motion.div key="empty" className="drop-empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <span className="drop-icon">↑</span>
-              <strong>모델 정보 파일을 끌어다 놓기</strong>
-              <span>또는 클릭해서 JSON 파일 고르기</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
 
       <div className="examples">
         <span className="examples-title" id="example-label">팀이 만든 예제</span>
@@ -389,40 +329,6 @@ function ExampleSelect({ examples, value, onChange }) {
   );
 }
 
-function UploadRow({ upload }) {
-  const done = upload.state === "done";
-  const failed = upload.state === "error";
-  return (
-    <motion.div className="upload-row" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-      <span className="file-icon">{"{ }"}</span>
-      <div className="upload-main">
-        <div className="upload-name">{upload.name}</div>
-        <div className="upload-sub">{(upload.size / 1024).toFixed(1)} KB</div>
-        <div className="track">
-          <motion.div
-            className={`fill ${failed ? "failed" : ""}`}
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: upload.state === "loading" ? 0.85 : 1 }}
-            transition={{ duration: upload.state === "loading" ? 1.2 : 0.3, ease }}
-          />
-        </div>
-      </div>
-      <AnimatePresence>
-        {(done || failed) && (
-          <motion.span
-            className={`upload-badge ${failed ? "failed" : ""}`}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 420, damping: 18, delay: 0.25 }}
-          >
-            {failed ? "!" : "✓"}
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
 function Steps({ states }) {
   // 선은 마지막으로 끝났거나 진행 중인 단계까지만 채운다.
   const reached = Math.max(0, ...states.map((s, i) => (s === "done" || s === "now" ? i : 0)));
@@ -528,11 +434,10 @@ function Shares({ result }) {
     key: `${r.role}-${r.name}`,
     label: `${role(r.role).label} · ${r.name}`,
     color: role(r.role).color,
-    wallet: shortWallet(r.wallet),
     pct: r.share_bps / 100,
   }));
   if (result.escrow_bps) {
-    rows.push({ key: "escrow", label: "따로 보관 · 지갑을 찾으면 지급", color: "var(--mute)", wallet: "—", pct: result.escrow_bps / 100, escrow: true });
+    rows.push({ key: "escrow", label: "따로 보관 · 지갑을 찾으면 지급", color: "var(--mute)", pct: result.escrow_bps / 100, escrow: true });
   }
 
   // 화면에 보일 때 왼쪽부터 한 칸씩 차오른다.
@@ -575,7 +480,6 @@ function Shares({ result }) {
           >
             <i style={{ background: r.color }} />
             <span className="legend-label">{r.label}</span>
-            <span className="wallet">{r.wallet}</span>
             <strong><Ticker value={r.pct} start={seen} /></strong>
           </li>
         ))}
@@ -783,7 +687,7 @@ function Payment({ review, source, registration, locked, onProgress }) {
 
       {settlement?.registered && (
         <section className="block">
-          <h2>권리자 수령</h2>
+          <h2>자동 분배된 금액</h2>
           <ul className="claims">
             {settlement.recipients.map((row) => {
               const info = names[row.wallet.toLowerCase()];
@@ -791,14 +695,13 @@ function Payment({ review, source, registration, locked, onProgress }) {
                 <li key={row.wallet}>
                   <i style={{ background: role(info?.role).color }} />
                   <span className="legend-label">{info ? `${role(info.role).label} · ${info.name}` : `보관금 수령 · ${row.holder}`}</span>
-                  <span className="wallet">{shortWallet(row.wallet)}</span>
                   <strong title={`${row.claimable_eth} ETH`}>{shortEth(row.claimable_eth)} ETH</strong>
                   <button
                     className="claim"
                     disabled={!!pending || !row.holder || row.claimable_eth === "0"}
                     onClick={() => claim(row)}
                   >
-                    {pending === row.wallet ? <span className="spinner dark" /> : "받기"}
+                    {pending === row.wallet ? <span className="spinner dark" /> : "대신 받기 (시연)"}
                   </button>
                   {claims[row.wallet] && <div className="claim-result"><TxResult result={claims[row.wallet]} done="수령 완료" /></div>}
                 </li>
@@ -808,7 +711,6 @@ function Payment({ review, source, registration, locked, onProgress }) {
               <li>
                 <i style={{ background: "var(--mute)" }} />
                 <span className="legend-label">따로 보관{review.escrow_holder && ` · ${review.escrow_holder}에게 지급 예정`}</span>
-                <span className="wallet">—</span>
                 <strong title={`${settlement.escrow_eth} ETH`}>{shortEth(settlement.escrow_eth)} ETH</strong>
                 {review.escrow_holder ? (
                   <button className="claim" disabled={!!pending} onClick={release}>
