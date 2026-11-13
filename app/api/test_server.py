@@ -134,7 +134,11 @@ class ExtractApiTest(unittest.TestCase):
         self.assertTrue(result["validation"]["valid"])
         self.assertIn(result["policy"]["status"], {"APPROVED", "APPROVED_WITH_ESCROW", "HOLD", "REVIEW"})
         self.assertEqual(result["case"]["policy"]["automated_status"], result["policy"]["status"])
-        metadata_mock.assert_called_once_with("demo/model")
+        metadata_mock.assert_has_calls([
+            mock.call("demo/model"),
+            mock.call("base-org/base-model"),
+        ])
+        self.assertEqual(metadata_mock.call_count, 2)
         readme_mock.assert_called_once_with("demo/model")
         call_llm.assert_called_once()
         register.assert_not_called()
