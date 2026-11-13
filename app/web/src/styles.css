@@ -193,7 +193,7 @@ h2 { font-size: 1.25rem; font-weight: 700; margin: 0 0 14px; letter-spacing: -0.
 .claim { font: inherit; font-size: 0.85rem; font-weight: 600; min-height: 36px; border: 1px solid var(--line); border-radius: 10px; background: white; color: var(--ink); cursor: pointer; }
 .claim:hover:not(:disabled) { border-color: var(--mute); }
 .claim:disabled { color: var(--mute); cursor: default; }
-.claim-result { grid-column: 2 / -1; }
+.chain-link { display: inline-block; margin-top: 14px; color: var(--blue); font-weight: 600; font-size: 0.9rem; }
 .claims + .result { margin-top: 14px; }
 .spinner.dark { border-color: var(--line); border-top-color: var(--ink); width: 14px; height: 14px; vertical-align: middle; }
 
@@ -215,7 +215,6 @@ blockquote small { display: block; color: var(--mute); font-size: 0.75rem; margi
   .steps::before, .steps-line { top: 14px; }
   .legend li { grid-template-columns: 10px 1fr 52px; }
   .claims li { grid-template-columns: 10px 1fr auto; }
-  .claims .claim { grid-column: 2 / -1; }
   .extract-row { flex-direction: column; }
 }
 

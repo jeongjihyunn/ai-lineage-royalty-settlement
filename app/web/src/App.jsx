@@ -13,7 +13,7 @@ const ROLES = {
   dataset: { label: "데이터셋", color: "var(--cyan)" },
   adapter: { label: "어댑터", color: "var(--yellow)" },
 };
-const STEPS = ["모델 정보 읽기", "정산 판정", "사람 승인", "블록체인 등록", "사용료 입금", "권리자 수령"];
+const STEPS = ["모델 정보 읽기", "정산 판정", "사람 승인", "블록체인 등록", "사용료 입금", "자동 분배"];
 const APPROVABLE = ["APPROVED", "APPROVED_WITH_ESCROW"];
 const ALREADY = "ALREADY_REGISTERED";
 const OK_REASON = "라이선스·근거·수령 지갑 확인됨";
@@ -164,7 +164,7 @@ export default function App() {
         review.register.ok ? (registered ? "done" : "now") : "blocked",
         registered ? "done" : "",
         registered ? (chain.deposited ? "done" : "now") : "",
-        registered && chain.deposited ? (chain.claimed ? "done" : "now") : "",
+        registered && chain.deposited ? "done" : "",
       ];
   const locked = APPROVABLE.includes(status) && !review?.tamper && !registered;
 
@@ -601,9 +601,8 @@ function TxResult({ result, done }) {
 function Payment({ review, source, registration, locked, onProgress }) {
   const hash = review.tamper ? null : review.model.hash;
   const [amount, setAmount] = useState("0.001");
-  const [pending, setPending] = useState(null); // "deposit" | 권리자 지갑 주소
+  const [pending, setPending] = useState(null); // "deposit" | "release"
   const [deposited, setDeposited] = useState(null);
-  const [claims, setClaims] = useState({});
   const [settlement, setSettlement] = useState(null);
   const [released, setReleased] = useState(null);
 
@@ -613,14 +612,13 @@ function Payment({ review, source, registration, locked, onProgress }) {
     if (hash) refresh();
   }, [hash, registration]);
 
-  // 이번 화면에서 입금했거나 체인에 받을 돈이 남아 있으면 입금 단계는 끝난 것으로 본다.
+  // 이번 화면에서 입금했거나 체인에 받을 돈이 남아 있으면 입금·분배 단계는 끝난 것으로 본다.
   useEffect(() => {
     onProgress({
       registered: !!settlement?.registered,
       deposited: !!deposited?.ok || !!settlement?.recipients?.some((r) => r.claimable_eth !== "0") || (settlement?.escrow_eth ?? "0") !== "0",
-      claimed: Object.values(claims).some((c) => c?.ok),
     });
-  }, [settlement, deposited, claims]);
+  }, [settlement, deposited]);
 
   async function send() {
     setPending("deposit");
@@ -634,20 +632,6 @@ function Payment({ review, source, registration, locked, onProgress }) {
       if (hash) await refresh();
     } catch (e) {
       setDeposited({ ok: false, error_message: e.message });
-    } finally {
-      setPending(null);
-    }
-  }
-
-  async function claim(row) {
-    setPending(row.wallet);
-    setClaims((c) => ({ ...c, [row.wallet]: null }));
-    try {
-      const result = await fetchJson(`/api/settlement/${hash}/claim/${row.holder}`, { method: "POST" });
-      setClaims((c) => ({ ...c, [row.wallet]: result }));
-      await refresh();
-    } catch (e) {
-      setClaims((c) => ({ ...c, [row.wallet]: { ok: false, error_message: e.message } }));
     } finally {
       setPending(null);
     }
@@ -696,14 +680,6 @@ function Payment({ review, source, registration, locked, onProgress }) {
                   <i style={{ background: role(info?.role).color }} />
                   <span className="legend-label">{info ? `${role(info.role).label} · ${info.name}` : `보관금 수령 · ${row.holder}`}</span>
                   <strong title={`${row.claimable_eth} ETH`}>{shortEth(row.claimable_eth)} ETH</strong>
-                  <button
-                    className="claim"
-                    disabled={!!pending || !row.holder || row.claimable_eth === "0"}
-                    onClick={() => claim(row)}
-                  >
-                    {pending === row.wallet ? <span className="spinner dark" /> : "대신 받기 (시연)"}
-                  </button>
-                  {claims[row.wallet] && <div className="claim-result"><TxResult result={claims[row.wallet]} done="수령 완료" /></div>}
                 </li>
               );
             })}
@@ -721,6 +697,11 @@ function Payment({ review, source, registration, locked, onProgress }) {
             )}
           </ul>
           <TxResult result={released} done="보관금 지급 완료" />
+          {settlement.contract_address && (
+            <a className="chain-link" href={`https://sepolia.etherscan.io/address/${settlement.contract_address}`} target="_blank" rel="noreferrer">
+              Etherscan에서 수령 기록 보기
+            </a>
+          )}
         </section>
       )}
     </>

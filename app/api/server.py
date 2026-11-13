@@ -243,7 +243,7 @@ def settlement(model_hash):
                 recipients.append({"wallet": wallet, "holder": holders.get(wallet.lower()), "claimable_eth": eth(amount)})
     except RegisterError as e:
         return {"registered": False if e.code == "MODEL_HASH_NOT_REGISTERED" else None, "error_message": e.message}
-    return {"registered": True, "escrow_eth": eth(rule["escrow_balance"]), "recipients": recipients}
+    return {"registered": True, "contract_address": settings["CONTRACT_ADDRESS"], "escrow_eth": eth(rule["escrow_balance"]), "recipients": recipients}
 
 
 def release(case, raw, holder):
