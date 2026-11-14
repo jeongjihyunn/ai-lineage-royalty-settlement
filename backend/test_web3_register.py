@@ -9,6 +9,7 @@ import importlib.util
 import json
 import os
 import re
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -186,9 +187,16 @@ class Web3RegisterMockTest(unittest.TestCase):
                     self.assertIsNone(result["tx_hash"])
 
     def test_missing_model_hash_blocked_before_network(self):
-        # 01은 APPROVED지만 input.artifact_sha256이 null
+        # APPROVED여도 input.artifact_sha256이 없으면 네트워크 접속 전에 막힌다.
+        # (01은 해시가 채워졌으므로, 해시만 비운 사본으로 확인한다.)
+        case = json.loads((FIXTURES_DIR / "01_normal_paper_qa.json").read_text(encoding="utf-8"))
+        case["input"]["artifact_sha256"] = None
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
+            json.dump(case, f, ensure_ascii=False)
+            temp_path = f.name
+        self.addCleanup(os.unlink, temp_path)
         with mock.patch.object(wr, "_read_settings", side_effect=fail_if_called):
-            result = self.register(FIXTURES_DIR / "01_normal_paper_qa.json", env=None)
+            result = self.register(Path(temp_path), env=None)
         self.assertEqual(result["status"], "APPROVED")
         self.assertEqual(result["error_code"], "MISSING_MODEL_HASH")
 
