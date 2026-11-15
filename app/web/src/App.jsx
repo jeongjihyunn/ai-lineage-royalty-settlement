@@ -176,6 +176,8 @@ export default function App() {
           <p>AI 모델을 만든 재료의 권리자에게 사용료를 나눠도 되는지 판정하고, 승인하면 분배 규칙을 블록체인에 등록합니다.</p>
         </motion.header>
 
+        <div className="layout">
+        <aside className="side">
         <Input
           examples={examples}
           source={source}
@@ -185,7 +187,9 @@ export default function App() {
         />
 
         <Steps states={stepStates} />
+        </aside>
 
+        <div className="content">
         {error && <div className="error">{error}</div>}
 
         <AnimatePresence mode="wait">
@@ -207,6 +211,8 @@ export default function App() {
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
+        </div>
       </main>
     </MotionConfig>
   );
@@ -549,15 +555,22 @@ function Approve({ register, source, registration, onChain, onResult }) {
         <p className="muted">{register.reason}</p>
       ) : (
         <div className="approve">
-          <motion.button
-            className="primary"
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.97 }}
-            disabled={pending || done}
-            onClick={click}
-          >
-            {pending ? <span className="spinner" /> : already ? "이미 등록됨" : done ? "등록 완료" : "승인하고 블록체인에 등록"}
-          </motion.button>
+          {done ? (
+            <motion.p className="approved" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.35, ease }}>
+              <span className="approved-mark" aria-hidden="true">✓</span>
+              블록체인에 등록됨
+            </motion.p>
+          ) : (
+            <motion.button
+              className="primary"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              disabled={pending}
+              onClick={click}
+            >
+              {pending ? <span className="spinner" /> : "승인하고 블록체인에 등록"}
+            </motion.button>
+          )}
           <AnimatePresence>
             {registration && (
               <motion.div className="result" aria-live="polite" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}>
