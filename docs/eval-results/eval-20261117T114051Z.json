@@ -1,0 +1,795 @@
+{
+  "split": "eval",
+  "run_at": "20261117T114051Z",
+  "llm_provider": "anthropic",
+  "llm_model": "claude-sonnet-5",
+  "metrics": {
+    "lineage_precision": 0.875,
+    "lineage_recall": 1.0,
+    "lineage_f1": 0.9333333333333333,
+    "declared_license_accuracy": 1.0,
+    "upstream_license_accuracy": 0.0,
+    "citation_grounding_rate": 1.0,
+    "policy_status_accuracy": 1.0,
+    "unsafe_approval_count": 0
+  },
+  "numerators": {
+    "lineage_precision": 14,
+    "lineage_recall": 14,
+    "lineage_f1": 28,
+    "declared_license_accuracy": 4,
+    "upstream_license_accuracy": 0,
+    "citation_grounding_rate": 14,
+    "policy_status_accuracy": 4,
+    "unsafe_approval_count": 0
+  },
+  "denominators": {
+    "lineage_precision": 16,
+    "lineage_recall": 14,
+    "lineage_f1": 30,
+    "declared_license_accuracy": 4,
+    "upstream_license_accuracy": 0,
+    "citation_grounding_rate": 14,
+    "policy_status_accuracy": 4,
+    "unsafe_approval_count": 4
+  },
+  "hold_but_approved_count": 0,
+  "extraction_success": {
+    "ok": 4,
+    "total": 4
+  },
+  "time": {
+    "human_annotation_minutes_total": null,
+    "human_annotated_cases": 0,
+    "system_seconds_total": 16.28,
+    "system_seconds_mean": 4.07
+  },
+  "skipped_fetch_failed": [],
+  "cases": [
+    {
+      "file": "06_opt_rlhf_dschat_lora.json",
+      "model_id": "kaitchup/OPT-1.3B-RLHF-DSChatLoRA",
+      "outcome": "OK",
+      "seconds": 2.94,
+      "expected_status": "HOLD",
+      "predicted_status": "HOLD",
+      "lineage": {
+        "true_positive": 3,
+        "false_positive": 0,
+        "false_negative": 0
+      },
+      "declared_license": {
+        "expected": "cc-by-nc-sa-4.0",
+        "predicted": "cc-by-nc-sa-4.0",
+        "correct": true
+      },
+      "citations": {
+        "grounded": 2,
+        "denominator": 2
+      },
+      "errors": []
+    },
+    {
+      "file": "07_hermes_3_llama.json",
+      "model_id": "NousResearch/Hermes-3-Llama-3.1-8B",
+      "outcome": "OK",
+      "seconds": 2.39,
+      "expected_status": "REVIEW",
+      "predicted_status": "REVIEW",
+      "lineage": {
+        "true_positive": 2,
+        "false_positive": 0,
+        "false_negative": 0
+      },
+      "declared_license": {
+        "expected": "llama3",
+        "predicted": "llama3",
+        "correct": true
+      },
+      "citations": {
+        "grounded": 1,
+        "denominator": 1
+      },
+      "errors": []
+    },
+    {
+      "file": "08_qwen_ai2d_qlora.json",
+      "model_id": "DrMajid/qwen2-vl-2b-ai2d-qlora",
+      "outcome": "OK",
+      "seconds": 4.48,
+      "expected_status": "REVIEW",
+      "predicted_status": "REVIEW",
+      "lineage": {
+        "true_positive": 3,
+        "false_positive": 0,
+        "false_negative": 0
+      },
+      "declared_license": {
+        "expected": "apache-2.0",
+        "predicted": "apache-2.0",
+        "correct": true
+      },
+      "citations": {
+        "grounded": 4,
+        "denominator": 4
+      },
+      "errors": []
+    },
+    {
+      "file": "09_tinyllama_chat.json",
+      "model_id": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+      "outcome": "OK",
+      "seconds": 6.47,
+      "expected_status": "REVIEW",
+      "predicted_status": "REVIEW",
+      "lineage": {
+        "true_positive": 6,
+        "false_positive": 2,
+        "false_negative": 0
+      },
+      "declared_license": {
+        "expected": "apache-2.0",
+        "predicted": "apache-2.0",
+        "correct": true
+      },
+      "citations": {
+        "grounded": 7,
+        "denominator": 7
+      },
+      "errors": []
+    }
+  ],
+  "predictions": {
+    "06_opt_rlhf_dschat_lora.json": {
+      "schema_version": "0.2",
+      "case_id": "hf_kaitchup_OPT-1.3B-RLHF-DSChatLoRA_20261117",
+      "input": {
+        "model_id": "kaitchup/OPT-1.3B-RLHF-DSChatLoRA",
+        "model_url": "https://huggingface.co/kaitchup/OPT-1.3B-RLHF-DSChatLoRA",
+        "revision": null,
+        "checked_at": "2026-11-17",
+        "artifact_file_name": null,
+        "artifact_sha256": null
+      },
+      "components": [
+        {
+          "role": "adapter",
+          "name": "kaitchup/OPT-1.3B-RLHF-DSChatLoRA",
+          "relationship": null,
+          "publisher": "kaitchup",
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "cc-by-nc-sa-4.0",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "modelId: kaitchup/OPT-1.3B-RLHF-DSChatLoRA",
+              "evidence_location": "Hugging Face API modelId",
+              "source_url": "https://huggingface.co/api/models/kaitchup/OPT-1.3B-RLHF-DSChatLoRA"
+            },
+            {
+              "evidence_quote": "author: kaitchup",
+              "evidence_location": "Hugging Face API author",
+              "source_url": "https://huggingface.co/api/models/kaitchup/OPT-1.3B-RLHF-DSChatLoRA"
+            },
+            {
+              "evidence_quote": "cardData.license: cc-by-nc-sa-4.0",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/models/kaitchup/OPT-1.3B-RLHF-DSChatLoRA"
+            },
+            {
+              "evidence_quote": "cardData.datasets: Dahoas/rm-static",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/kaitchup/OPT-1.3B-RLHF-DSChatLoRA"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "Dahoas/rm-static",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": null,
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.datasets: Dahoas/rm-static",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/kaitchup/OPT-1.3B-RLHF-DSChatLoRA"
+            },
+            {
+              "evidence_quote": "datasets:\n- Dahoas/rm-static",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/kaitchup/OPT-1.3B-RLHF-DSChatLoRA/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "base_model",
+          "name": "facebook/opt-1.3b",
+          "relationship": "base_for",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": null,
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "**Finetuned from model:** [facebook/opt-1.3b](https://huggingface.co/facebook/opt-1.3b)",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/kaitchup/OPT-1.3B-RLHF-DSChatLoRA/raw/main/README.md"
+            }
+          ]
+        }
+      ],
+      "license_analysis": {
+        "declared_license": {
+          "value": "cc-by-nc-sa-4.0",
+          "evidence_quote": "license: cc-by-nc-sa-4.0",
+          "evidence_location": "README 본문",
+          "source_url": "https://huggingface.co/kaitchup/OPT-1.3B-RLHF-DSChatLoRA/raw/main/README.md"
+        },
+        "upstream_license": {
+          "value": null,
+          "evidence_quote": null,
+          "evidence_location": null,
+          "source_url": null
+        },
+        "license_metadata_mismatch": null,
+        "commercial_use_assessment": "review_required",
+        "findings": []
+      },
+      "policy": {
+        "automated_status": "HOLD",
+        "reasons": []
+      },
+      "review": {
+        "reviewer_decision": null,
+        "reviewer_wallet": null,
+        "approved_at": null
+      },
+      "settlement": {
+        "recipients": [],
+        "escrow_bps": 0,
+        "total_bps": 0
+      },
+      "gold": {
+        "expected_status": null,
+        "state_reason": null,
+        "split": "dev",
+        "annotators": [],
+        "annotation_minutes": null
+      }
+    },
+    "07_hermes_3_llama.json": {
+      "schema_version": "0.2",
+      "case_id": "hf_NousResearch_Hermes-3-Llama-3.1-8B_20261117",
+      "input": {
+        "model_id": "NousResearch/Hermes-3-Llama-3.1-8B",
+        "model_url": "https://huggingface.co/NousResearch/Hermes-3-Llama-3.1-8B",
+        "revision": null,
+        "checked_at": "2026-11-17",
+        "artifact_file_name": null,
+        "artifact_sha256": null
+      },
+      "components": [
+        {
+          "role": "adapter",
+          "name": "NousResearch/Hermes-3-Llama-3.1-8B",
+          "relationship": null,
+          "publisher": "NousResearch",
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "llama3",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "modelId: NousResearch/Hermes-3-Llama-3.1-8B",
+              "evidence_location": "Hugging Face API modelId",
+              "source_url": "https://huggingface.co/api/models/NousResearch/Hermes-3-Llama-3.1-8B"
+            },
+            {
+              "evidence_quote": "author: NousResearch",
+              "evidence_location": "Hugging Face API author",
+              "source_url": "https://huggingface.co/api/models/NousResearch/Hermes-3-Llama-3.1-8B"
+            },
+            {
+              "evidence_quote": "cardData.license: llama3",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/models/NousResearch/Hermes-3-Llama-3.1-8B"
+            },
+            {
+              "evidence_quote": "cardData.base_model: meta-llama/Meta-Llama-3.1-8B",
+              "evidence_location": "Hugging Face API cardData.base_model",
+              "source_url": "https://huggingface.co/api/models/NousResearch/Hermes-3-Llama-3.1-8B"
+            }
+          ]
+        },
+        {
+          "role": "base_model",
+          "name": "meta-llama/Meta-Llama-3.1-8B",
+          "relationship": "base_for",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "llama3.1",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.base_model: meta-llama/Meta-Llama-3.1-8B",
+              "evidence_location": "Hugging Face API cardData.base_model",
+              "source_url": "https://huggingface.co/api/models/NousResearch/Hermes-3-Llama-3.1-8B"
+            },
+            {
+              "evidence_quote": "cardData.license: llama3.1",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/models/meta-llama/Meta-Llama-3.1-8B"
+            },
+            {
+              "evidence_quote": "base_model: meta-llama/Meta-Llama-3.1-8B",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/NousResearch/Hermes-3-Llama-3.1-8B/raw/main/README.md"
+            }
+          ]
+        }
+      ],
+      "license_analysis": {
+        "declared_license": {
+          "value": "llama3",
+          "evidence_quote": "license: llama3",
+          "evidence_location": "README 본문",
+          "source_url": "https://huggingface.co/NousResearch/Hermes-3-Llama-3.1-8B/raw/main/README.md"
+        },
+        "upstream_license": {
+          "value": null,
+          "evidence_quote": null,
+          "evidence_location": null,
+          "source_url": null
+        },
+        "license_metadata_mismatch": null,
+        "commercial_use_assessment": "review_required",
+        "findings": []
+      },
+      "policy": {
+        "automated_status": "REVIEW",
+        "reasons": []
+      },
+      "review": {
+        "reviewer_decision": null,
+        "reviewer_wallet": null,
+        "approved_at": null
+      },
+      "settlement": {
+        "recipients": [],
+        "escrow_bps": 0,
+        "total_bps": 0
+      },
+      "gold": {
+        "expected_status": null,
+        "state_reason": null,
+        "split": "dev",
+        "annotators": [],
+        "annotation_minutes": null
+      }
+    },
+    "08_qwen_ai2d_qlora.json": {
+      "schema_version": "0.2",
+      "case_id": "hf_DrMajid_qwen2-vl-2b-ai2d-qlora_20261117",
+      "input": {
+        "model_id": "DrMajid/qwen2-vl-2b-ai2d-qlora",
+        "model_url": "https://huggingface.co/DrMajid/qwen2-vl-2b-ai2d-qlora",
+        "revision": null,
+        "checked_at": "2026-11-17",
+        "artifact_file_name": null,
+        "artifact_sha256": null
+      },
+      "components": [
+        {
+          "role": "adapter",
+          "name": "DrMajid/qwen2-vl-2b-ai2d-qlora",
+          "relationship": null,
+          "publisher": "DrMajid",
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "apache-2.0",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "modelId: DrMajid/qwen2-vl-2b-ai2d-qlora",
+              "evidence_location": "Hugging Face API modelId",
+              "source_url": "https://huggingface.co/api/models/DrMajid/qwen2-vl-2b-ai2d-qlora"
+            },
+            {
+              "evidence_quote": "author: DrMajid",
+              "evidence_location": "Hugging Face API author",
+              "source_url": "https://huggingface.co/api/models/DrMajid/qwen2-vl-2b-ai2d-qlora"
+            },
+            {
+              "evidence_quote": "cardData.license: apache-2.0",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/models/DrMajid/qwen2-vl-2b-ai2d-qlora"
+            },
+            {
+              "evidence_quote": "cardData.base_model: Qwen/Qwen2-VL-2B-Instruct",
+              "evidence_location": "Hugging Face API cardData.base_model",
+              "source_url": "https://huggingface.co/api/models/DrMajid/qwen2-vl-2b-ai2d-qlora"
+            },
+            {
+              "evidence_quote": "cardData.datasets: HuggingFaceM4/the_cauldron",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/DrMajid/qwen2-vl-2b-ai2d-qlora"
+            }
+          ]
+        },
+        {
+          "role": "base_model",
+          "name": "Qwen/Qwen2-VL-2B-Instruct",
+          "relationship": "base_for",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "apache-2.0",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.base_model: Qwen/Qwen2-VL-2B-Instruct",
+              "evidence_location": "Hugging Face API cardData.base_model",
+              "source_url": "https://huggingface.co/api/models/DrMajid/qwen2-vl-2b-ai2d-qlora"
+            },
+            {
+              "evidence_quote": "cardData.license: apache-2.0",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/models/Qwen/Qwen2-VL-2B-Instruct"
+            },
+            {
+              "evidence_quote": "base_model: Qwen/Qwen2-VL-2B-Instruct",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/DrMajid/qwen2-vl-2b-ai2d-qlora/raw/main/README.md"
+            },
+            {
+              "evidence_quote": "This repository contains a PEFT/LoRA adapter for\n`Qwen/Qwen2-VL-2B-Instruct`, fine-tuned on the AI2D subset of\n`HuggingFaceM4/the_cauldron`.",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/DrMajid/qwen2-vl-2b-ai2d-qlora/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "HuggingFaceM4/the_cauldron",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": null,
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.datasets: HuggingFaceM4/the_cauldron",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/DrMajid/qwen2-vl-2b-ai2d-qlora"
+            },
+            {
+              "evidence_quote": "datasets:\n  - HuggingFaceM4/the_cauldron",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/DrMajid/qwen2-vl-2b-ai2d-qlora/raw/main/README.md"
+            },
+            {
+              "evidence_quote": "This repository contains a PEFT/LoRA adapter for\n`Qwen/Qwen2-VL-2B-Instruct`, fine-tuned on the AI2D subset of\n`HuggingFaceM4/the_cauldron`.",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/DrMajid/qwen2-vl-2b-ai2d-qlora/raw/main/README.md"
+            }
+          ]
+        }
+      ],
+      "license_analysis": {
+        "declared_license": {
+          "value": "apache-2.0",
+          "evidence_quote": "license: apache-2.0",
+          "evidence_location": "README 본문",
+          "source_url": "https://huggingface.co/DrMajid/qwen2-vl-2b-ai2d-qlora/raw/main/README.md"
+        },
+        "upstream_license": {
+          "value": null,
+          "evidence_quote": null,
+          "evidence_location": null,
+          "source_url": null
+        },
+        "license_metadata_mismatch": null,
+        "commercial_use_assessment": "review_required",
+        "findings": []
+      },
+      "policy": {
+        "automated_status": "REVIEW",
+        "reasons": []
+      },
+      "review": {
+        "reviewer_decision": null,
+        "reviewer_wallet": null,
+        "approved_at": null
+      },
+      "settlement": {
+        "recipients": [],
+        "escrow_bps": 0,
+        "total_bps": 0
+      },
+      "gold": {
+        "expected_status": null,
+        "state_reason": null,
+        "split": "dev",
+        "annotators": [],
+        "annotation_minutes": null
+      }
+    },
+    "09_tinyllama_chat.json": {
+      "schema_version": "0.2",
+      "case_id": "hf_TinyLlama_TinyLlama-1.1B-Chat-v1.0_20261117",
+      "input": {
+        "model_id": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        "model_url": "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        "revision": null,
+        "checked_at": "2026-11-17",
+        "artifact_file_name": null,
+        "artifact_sha256": null
+      },
+      "components": [
+        {
+          "role": "adapter",
+          "name": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "relationship": null,
+          "publisher": "TinyLlama",
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "apache-2.0",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "modelId: TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+              "evidence_location": "Hugging Face API modelId",
+              "source_url": "https://huggingface.co/api/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            },
+            {
+              "evidence_quote": "author: TinyLlama",
+              "evidence_location": "Hugging Face API author",
+              "source_url": "https://huggingface.co/api/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            },
+            {
+              "evidence_quote": "cardData.license: apache-2.0",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            },
+            {
+              "evidence_quote": "cardData.datasets: cerebras/SlimPajama-627B",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            },
+            {
+              "evidence_quote": "cardData.datasets: bigcode/starcoderdata",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            },
+            {
+              "evidence_quote": "cardData.datasets: HuggingFaceH4/ultrachat_200k",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            },
+            {
+              "evidence_quote": "cardData.datasets: HuggingFaceH4/ultrafeedback_binarized",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "cerebras/SlimPajama-627B",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": null,
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.datasets: cerebras/SlimPajama-627B",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            },
+            {
+              "evidence_quote": "- cerebras/SlimPajama-627B",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "bigcode/starcoderdata",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "other",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.datasets: bigcode/starcoderdata",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            },
+            {
+              "evidence_quote": "cardData.license: other",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/datasets/bigcode/starcoderdata"
+            },
+            {
+              "evidence_quote": "- bigcode/starcoderdata",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "HuggingFaceH4/ultrachat_200k",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "mit",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.datasets: HuggingFaceH4/ultrachat_200k",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            },
+            {
+              "evidence_quote": "cardData.license: mit",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/datasets/HuggingFaceH4/ultrachat_200k"
+            },
+            {
+              "evidence_quote": "- HuggingFaceH4/ultrachat_200k",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "HuggingFaceH4/ultrafeedback_binarized",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "mit",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.datasets: HuggingFaceH4/ultrafeedback_binarized",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+            },
+            {
+              "evidence_quote": "cardData.license: mit",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/datasets/HuggingFaceH4/ultrafeedback_binarized"
+            },
+            {
+              "evidence_quote": "- HuggingFaceH4/ultrafeedback_binarized",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "base_model",
+          "name": "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T",
+          "relationship": "base_for",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": null,
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "This is the chat model finetuned on top of [TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T](https://huggingface.co/TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T).",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "UltraChat",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": null,
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "The model was \" initially fine-tuned on a variant of the [`UltraChat`](https://huggingface.co/datasets/stingning/ultrachat) dataset, which contains a diverse range of synthetic dialogues generated by ChatGPT.",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "openbmb/UltraFeedback",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": null,
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "We then further aligned the model with [🤗 TRL's](https://github.com/huggingface/trl) `DPOTrainer` on the [openbmb/UltraFeedback](https://huggingface.co/datasets/openbmb/UltraFeedback) dataset, which contain 64k prompts and model completions that are ranked by GPT-4.\"",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/raw/main/README.md"
+            }
+          ]
+        }
+      ],
+      "license_analysis": {
+        "declared_license": {
+          "value": "apache-2.0",
+          "evidence_quote": "license: apache-2.0",
+          "evidence_location": "README 본문",
+          "source_url": "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0/raw/main/README.md"
+        },
+        "upstream_license": {
+          "value": null,
+          "evidence_quote": null,
+          "evidence_location": null,
+          "source_url": null
+        },
+        "license_metadata_mismatch": null,
+        "commercial_use_assessment": "review_required",
+        "findings": []
+      },
+      "policy": {
+        "automated_status": "REVIEW",
+        "reasons": []
+      },
+      "review": {
+        "reviewer_decision": null,
+        "reviewer_wallet": null,
+        "approved_at": null
+      },
+      "settlement": {
+        "recipients": [],
+        "escrow_bps": 0,
+        "total_bps": 0
+      },
+      "gold": {
+        "expected_status": null,
+        "state_reason": null,
+        "split": "dev",
+        "annotators": [],
+        "annotation_minutes": null
+      }
+    }
+  }
+}

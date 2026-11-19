@@ -1,0 +1,723 @@
+{
+  "split": "dev",
+  "run_at": "20261117T113743Z",
+  "llm_provider": "anthropic",
+  "llm_model": "claude-sonnet-5",
+  "metrics": {
+    "lineage_precision": 0.7692307692307693,
+    "lineage_recall": 0.7692307692307693,
+    "lineage_f1": 0.7692307692307693,
+    "declared_license_accuracy": 0.75,
+    "upstream_license_accuracy": 0.0,
+    "citation_grounding_rate": 1.0,
+    "policy_status_accuracy": 0.25,
+    "unsafe_approval_count": 0
+  },
+  "numerators": {
+    "lineage_precision": 10,
+    "lineage_recall": 10,
+    "lineage_f1": 20,
+    "declared_license_accuracy": 3,
+    "upstream_license_accuracy": 0,
+    "citation_grounding_rate": 11,
+    "policy_status_accuracy": 1,
+    "unsafe_approval_count": 0
+  },
+  "denominators": {
+    "lineage_precision": 13,
+    "lineage_recall": 13,
+    "lineage_f1": 26,
+    "declared_license_accuracy": 4,
+    "upstream_license_accuracy": 3,
+    "citation_grounding_rate": 11,
+    "policy_status_accuracy": 4,
+    "unsafe_approval_count": 4
+  },
+  "hold_but_approved_count": 0,
+  "extraction_success": {
+    "ok": 3,
+    "total": 4
+  },
+  "time": {
+    "human_annotation_minutes_total": null,
+    "human_annotated_cases": 0,
+    "system_seconds_total": 34.38,
+    "system_seconds_mean": 11.46
+  },
+  "skipped_fetch_failed": [
+    {
+      "file": "02_hold_noncommercial.json",
+      "model_id": "tmadl/IC-Qwen3.5-ORPO-400",
+      "errors": [
+        {
+          "path": "fetch",
+          "message": "Hugging Face README HTTP 오류(401): 모델 카드를 가져오지 못했습니다."
+        }
+      ]
+    },
+    {
+      "file": "03_escrow_unknown_recipient.json",
+      "model_id": "demo/approved-lineage-lora",
+      "errors": [
+        {
+          "path": "fetch",
+          "message": "Hugging Face API HTTP 오류(401): 모델 메타데이터를 가져오지 못했습니다."
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "file": "01_normal_paper_qa.json",
+      "model_id": "whosouravsharma/paper-qa-lora",
+      "outcome": "OK",
+      "seconds": 14.95,
+      "expected_status": "APPROVED",
+      "predicted_status": "REVIEW",
+      "lineage": {
+        "true_positive": 3,
+        "false_positive": 1,
+        "false_negative": 0
+      },
+      "declared_license": {
+        "expected": "apache-2.0",
+        "predicted": "apache-2.0",
+        "correct": true
+      },
+      "citations": {
+        "grounded": 4,
+        "denominator": 4
+      },
+      "errors": []
+    },
+    {
+      "file": "03_review_m4xx101.json",
+      "model_id": "m4xx101/llama-3.2-3b-lora",
+      "outcome": "EXTRACTION_FAILED",
+      "seconds": 5.25,
+      "expected_status": "REVIEW",
+      "predicted_status": null,
+      "lineage": {
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 3
+      },
+      "declared_license": {
+        "expected": "apache-2.0",
+        "predicted": null,
+        "correct": false
+      },
+      "citations": {
+        "grounded": 0,
+        "denominator": 0
+      },
+      "errors": [
+        {
+          "path": "components[1].evidence_quote",
+          "message": "인용문이 README 본문에 없습니다."
+        }
+      ]
+    },
+    {
+      "file": "04_hash_mismatch.json",
+      "model_id": "whosouravsharma/paper-qa-lora",
+      "outcome": "OK",
+      "seconds": 6.69,
+      "expected_status": "APPROVED",
+      "predicted_status": "REVIEW",
+      "lineage": {
+        "true_positive": 3,
+        "false_positive": 2,
+        "false_negative": 0
+      },
+      "declared_license": {
+        "expected": "apache-2.0",
+        "predicted": "apache-2.0",
+        "correct": true
+      },
+      "citations": {
+        "grounded": 4,
+        "denominator": 4
+      },
+      "errors": []
+    },
+    {
+      "file": "05_zephyr_7b_beta.json",
+      "model_id": "HuggingFaceH4/zephyr-7b-beta",
+      "outcome": "OK",
+      "seconds": 12.74,
+      "expected_status": "REVIEW",
+      "predicted_status": "REVIEW",
+      "lineage": {
+        "true_positive": 4,
+        "false_positive": 0,
+        "false_negative": 0
+      },
+      "declared_license": {
+        "expected": "mit",
+        "predicted": "mit",
+        "correct": true
+      },
+      "citations": {
+        "grounded": 3,
+        "denominator": 3
+      },
+      "errors": []
+    }
+  ],
+  "predictions": {
+    "01_normal_paper_qa.json": {
+      "schema_version": "0.2",
+      "case_id": "hf_whosouravsharma_paper-qa-lora_20261117",
+      "input": {
+        "model_id": "whosouravsharma/paper-qa-lora",
+        "model_url": "https://huggingface.co/whosouravsharma/paper-qa-lora",
+        "revision": null,
+        "checked_at": "2026-11-17",
+        "artifact_file_name": null,
+        "artifact_sha256": null
+      },
+      "components": [
+        {
+          "role": "adapter",
+          "name": "whosouravsharma/paper-qa-lora",
+          "relationship": null,
+          "publisher": "whosouravsharma",
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "apache-2.0",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "modelId: whosouravsharma/paper-qa-lora",
+              "evidence_location": "Hugging Face API modelId",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "author: whosouravsharma",
+              "evidence_location": "Hugging Face API author",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "cardData.license: apache-2.0",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "cardData.base_model: Qwen/Qwen2.5-1.5B-Instruct",
+              "evidence_location": "Hugging Face API cardData.base_model",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "cardData.datasets: whosouravsharma/paper-qa-qasper-sft",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "cardData.datasets: allenai/qasper",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "model = PeftModel.from_pretrained(base, \"whosouravsharma/paper-qa-lora\").eval()",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "base_model",
+          "name": "Qwen/Qwen2.5-1.5B-Instruct",
+          "relationship": "base_for",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "apache-2.0",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.base_model: Qwen/Qwen2.5-1.5B-Instruct",
+              "evidence_location": "Hugging Face API cardData.base_model",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "cardData.license: apache-2.0",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct"
+            },
+            {
+              "evidence_quote": "base_model: Qwen/Qwen2.5-1.5B-Instruct",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "whosouravsharma/paper-qa-qasper-sft",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": null,
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.datasets: whosouravsharma/paper-qa-qasper-sft",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "- whosouravsharma/paper-qa-qasper-sft",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "allenai/qasper",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "cc-by-4.0",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.datasets: allenai/qasper",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "cardData.license: cc-by-4.0",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/datasets/allenai/qasper"
+            },
+            {
+              "evidence_quote": "- allenai/qasper",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora/raw/main/README.md"
+            }
+          ]
+        }
+      ],
+      "license_analysis": {
+        "declared_license": {
+          "value": "apache-2.0",
+          "evidence_quote": "license: apache-2.0",
+          "evidence_location": "README 본문",
+          "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora/raw/main/README.md"
+        },
+        "upstream_license": {
+          "value": null,
+          "evidence_quote": null,
+          "evidence_location": null,
+          "source_url": null
+        },
+        "license_metadata_mismatch": null,
+        "commercial_use_assessment": "review_required",
+        "findings": []
+      },
+      "policy": {
+        "automated_status": "REVIEW",
+        "reasons": []
+      },
+      "review": {
+        "reviewer_decision": null,
+        "reviewer_wallet": null,
+        "approved_at": null
+      },
+      "settlement": {
+        "recipients": [],
+        "escrow_bps": 0,
+        "total_bps": 0
+      },
+      "gold": {
+        "expected_status": null,
+        "state_reason": null,
+        "split": "dev",
+        "annotators": [],
+        "annotation_minutes": null
+      }
+    },
+    "02_hold_noncommercial.json": null,
+    "03_escrow_unknown_recipient.json": null,
+    "03_review_m4xx101.json": null,
+    "04_hash_mismatch.json": {
+      "schema_version": "0.2",
+      "case_id": "hf_whosouravsharma_paper-qa-lora_20261117",
+      "input": {
+        "model_id": "whosouravsharma/paper-qa-lora",
+        "model_url": "https://huggingface.co/whosouravsharma/paper-qa-lora",
+        "revision": null,
+        "checked_at": "2026-11-17",
+        "artifact_file_name": null,
+        "artifact_sha256": null
+      },
+      "components": [
+        {
+          "role": "adapter",
+          "name": "whosouravsharma/paper-qa-lora",
+          "relationship": null,
+          "publisher": "whosouravsharma",
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "apache-2.0",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "modelId: whosouravsharma/paper-qa-lora",
+              "evidence_location": "Hugging Face API modelId",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "author: whosouravsharma",
+              "evidence_location": "Hugging Face API author",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "cardData.license: apache-2.0",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "cardData.base_model: Qwen/Qwen2.5-1.5B-Instruct",
+              "evidence_location": "Hugging Face API cardData.base_model",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "cardData.datasets: whosouravsharma/paper-qa-qasper-sft",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "cardData.datasets: allenai/qasper",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            }
+          ]
+        },
+        {
+          "role": "base_model",
+          "name": "Qwen/Qwen2.5-1.5B-Instruct",
+          "relationship": "base_for",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "apache-2.0",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.base_model: Qwen/Qwen2.5-1.5B-Instruct",
+              "evidence_location": "Hugging Face API cardData.base_model",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "cardData.license: apache-2.0",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct"
+            },
+            {
+              "evidence_quote": "base_model: Qwen/Qwen2.5-1.5B-Instruct",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "whosouravsharma/paper-qa-qasper-sft",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": null,
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.datasets: whosouravsharma/paper-qa-qasper-sft",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "datasets:\n- whosouravsharma/paper-qa-qasper-sft\n- allenai/qasper",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "allenai/qasper",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "cc-by-4.0",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.datasets: allenai/qasper",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/whosouravsharma/paper-qa-lora"
+            },
+            {
+              "evidence_quote": "cardData.license: cc-by-4.0",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/datasets/allenai/qasper"
+            },
+            {
+              "evidence_quote": "datasets:\n- whosouravsharma/paper-qa-qasper-sft\n- allenai/qasper",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "adapter",
+          "name": "paper-qa-lora",
+          "relationship": null,
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": null,
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "A QLoRA adapter for [`Qwen/Qwen2.5-1.5B-Instruct`](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct).",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora/raw/main/README.md"
+            }
+          ]
+        }
+      ],
+      "license_analysis": {
+        "declared_license": {
+          "value": "apache-2.0",
+          "evidence_quote": "license: apache-2.0",
+          "evidence_location": "README 본문",
+          "source_url": "https://huggingface.co/whosouravsharma/paper-qa-lora/raw/main/README.md"
+        },
+        "upstream_license": {
+          "value": null,
+          "evidence_quote": null,
+          "evidence_location": null,
+          "source_url": null
+        },
+        "license_metadata_mismatch": null,
+        "commercial_use_assessment": "review_required",
+        "findings": []
+      },
+      "policy": {
+        "automated_status": "REVIEW",
+        "reasons": []
+      },
+      "review": {
+        "reviewer_decision": null,
+        "reviewer_wallet": null,
+        "approved_at": null
+      },
+      "settlement": {
+        "recipients": [],
+        "escrow_bps": 0,
+        "total_bps": 0
+      },
+      "gold": {
+        "expected_status": null,
+        "state_reason": null,
+        "split": "dev",
+        "annotators": [],
+        "annotation_minutes": null
+      }
+    },
+    "05_zephyr_7b_beta.json": {
+      "schema_version": "0.2",
+      "case_id": "hf_HuggingFaceH4_zephyr-7b-beta_20261117",
+      "input": {
+        "model_id": "HuggingFaceH4/zephyr-7b-beta",
+        "model_url": "https://huggingface.co/HuggingFaceH4/zephyr-7b-beta",
+        "revision": null,
+        "checked_at": "2026-11-17",
+        "artifact_file_name": null,
+        "artifact_sha256": null
+      },
+      "components": [
+        {
+          "role": "adapter",
+          "name": "HuggingFaceH4/zephyr-7b-beta",
+          "relationship": null,
+          "publisher": "HuggingFaceH4",
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "mit",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "modelId: HuggingFaceH4/zephyr-7b-beta",
+              "evidence_location": "Hugging Face API modelId",
+              "source_url": "https://huggingface.co/api/models/HuggingFaceH4/zephyr-7b-beta"
+            },
+            {
+              "evidence_quote": "author: HuggingFaceH4",
+              "evidence_location": "Hugging Face API author",
+              "source_url": "https://huggingface.co/api/models/HuggingFaceH4/zephyr-7b-beta"
+            },
+            {
+              "evidence_quote": "cardData.license: mit",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/models/HuggingFaceH4/zephyr-7b-beta"
+            },
+            {
+              "evidence_quote": "cardData.base_model: mistralai/Mistral-7B-v0.1",
+              "evidence_location": "Hugging Face API cardData.base_model",
+              "source_url": "https://huggingface.co/api/models/HuggingFaceH4/zephyr-7b-beta"
+            },
+            {
+              "evidence_quote": "cardData.datasets: HuggingFaceH4/ultrachat_200k",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/HuggingFaceH4/zephyr-7b-beta"
+            },
+            {
+              "evidence_quote": "cardData.datasets: HuggingFaceH4/ultrafeedback_binarized",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/HuggingFaceH4/zephyr-7b-beta"
+            }
+          ]
+        },
+        {
+          "role": "base_model",
+          "name": "mistralai/Mistral-7B-v0.1",
+          "relationship": "base_for",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "apache-2.0",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.base_model: mistralai/Mistral-7B-v0.1",
+              "evidence_location": "Hugging Face API cardData.base_model",
+              "source_url": "https://huggingface.co/api/models/HuggingFaceH4/zephyr-7b-beta"
+            },
+            {
+              "evidence_quote": "cardData.license: apache-2.0",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/models/mistralai/Mistral-7B-v0.1"
+            },
+            {
+              "evidence_quote": "base_model: mistralai/Mistral-7B-v0.1",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/HuggingFaceH4/zephyr-7b-beta/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "HuggingFaceH4/ultrachat_200k",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "mit",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.datasets: HuggingFaceH4/ultrachat_200k",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/HuggingFaceH4/zephyr-7b-beta"
+            },
+            {
+              "evidence_quote": "cardData.license: mit",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/datasets/HuggingFaceH4/ultrachat_200k"
+            },
+            {
+              "evidence_quote": "- HuggingFaceH4/ultrachat_200k",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/HuggingFaceH4/zephyr-7b-beta/raw/main/README.md"
+            }
+          ]
+        },
+        {
+          "role": "dataset",
+          "name": "HuggingFaceH4/ultrafeedback_binarized",
+          "relationship": "trained_on",
+          "publisher": null,
+          "publisher_confidence": "unknown",
+          "rights_holder": null,
+          "rights_holder_status": "unknown",
+          "license_id": "mit",
+          "license_name": null,
+          "evidence": [
+            {
+              "evidence_quote": "cardData.datasets: HuggingFaceH4/ultrafeedback_binarized",
+              "evidence_location": "Hugging Face API cardData.datasets",
+              "source_url": "https://huggingface.co/api/models/HuggingFaceH4/zephyr-7b-beta"
+            },
+            {
+              "evidence_quote": "cardData.license: mit",
+              "evidence_location": "Hugging Face API cardData.license",
+              "source_url": "https://huggingface.co/api/datasets/HuggingFaceH4/ultrafeedback_binarized"
+            },
+            {
+              "evidence_quote": "- HuggingFaceH4/ultrafeedback_binarized",
+              "evidence_location": "README 본문",
+              "source_url": "https://huggingface.co/HuggingFaceH4/zephyr-7b-beta/raw/main/README.md"
+            }
+          ]
+        }
+      ],
+      "license_analysis": {
+        "declared_license": {
+          "value": "mit",
+          "evidence_quote": "license: mit",
+          "evidence_location": "README 본문",
+          "source_url": "https://huggingface.co/HuggingFaceH4/zephyr-7b-beta/raw/main/README.md"
+        },
+        "upstream_license": {
+          "value": null,
+          "evidence_quote": null,
+          "evidence_location": null,
+          "source_url": null
+        },
+        "license_metadata_mismatch": null,
+        "commercial_use_assessment": "review_required",
+        "findings": []
+      },
+      "policy": {
+        "automated_status": "REVIEW",
+        "reasons": []
+      },
+      "review": {
+        "reviewer_decision": null,
+        "reviewer_wallet": null,
+        "approved_at": null
+      },
+      "settlement": {
+        "recipients": [],
+        "escrow_bps": 0,
+        "total_bps": 0
+      },
+      "gold": {
+        "expected_status": null,
+        "state_reason": null,
+        "split": "dev",
+        "annotators": [],
+        "annotation_minutes": null
+      }
+    }
+  }
+}
